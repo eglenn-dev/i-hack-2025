@@ -66,7 +66,7 @@ export default function Error({
                 onClick={()=>router.back()}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back To Interview
+                Go Back
               </Button>
             </div>
           </div>
