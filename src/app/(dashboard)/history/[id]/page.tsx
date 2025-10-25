@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 export default async function InterviewDetailPage({
     params,
@@ -137,7 +138,9 @@ export default async function InterviewDetailPage({
                     <CardContent>
                         {interview.feedback ? (
                             <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                                {interview.feedback}
+                                <ReactMarkdown>
+                                    {interview.feedback}
+                                </ReactMarkdown>
                             </p>
                         ) : (
                             <p className="text-sm text-gray-500 dark:text-gray-400 italic">
