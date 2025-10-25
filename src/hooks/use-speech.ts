@@ -52,6 +52,9 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const callbacksRef = useRef({ onTranscript, onListeningChange });
   const isUserStoppingRef = useRef(false);
+  const isUserStartedRef = useRef(false); // Track if user explicitly started
+  const accumulatedTranscriptRef = useRef(""); // Track accumulated text
+  const isPausedRef = useRef(false); // Track if paused (vs stopped)
   const isSupported = isSpeechSupported();
 
   // Update callbacks ref when they change
@@ -77,12 +80,12 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
       const recognition = recognitionRef.current;
 
       // Configure recognition
-      recognition.continuous = false; // Single utterance mode
+      recognition.continuous = true; // Keep listening continuously
       recognition.interimResults = true;
       recognition.lang = "en-US";
       recognition.maxAlternatives = 1;
 
-      // Handle results
+      // Handle results - only if user started
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let interim = "";
         let final = "";
@@ -97,58 +100,63 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
           }
         }
 
-        const fullTranscript = final || interim;
-        setTranscript(fullTranscript);
+        // Show both accumulated final + current interim
+        const displayText = (
+          accumulatedTranscriptRef.current +
+          " " +
+          final +
+          interim
+        ).trim();
+        setTranscript(displayText);
 
         if (final) {
-          callbacksRef.current.onTranscript?.(final.trim());
-          // Auto-restart for continuous listening experience
-          if (!isUserStoppingRef.current) {
-            try {
-              setTimeout(() => {
-                if (!isUserStoppingRef.current && recognitionRef.current) {
-                  recognitionRef.current.start();
-                }
-              }, 300);
-            } catch {
-              // Already started, ignore
-            }
-          }
+          // Accumulate the final transcript
+          accumulatedTranscriptRef.current = (
+            accumulatedTranscriptRef.current +
+            " " +
+            final
+          ).trim();
+          callbacksRef.current.onTranscript?.(accumulatedTranscriptRef.current);
         }
       };
 
       // Handle errors
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error("Speech recognition error:", event.error);
-        // Restart on error if user didn't stop
-        if (!isUserStoppingRef.current && recognitionRef.current) {
-          try {
-            setTimeout(() => {
-              if (!isUserStoppingRef.current && recognitionRef.current) {
-                recognitionRef.current.start();
-              }
-            }, 300);
-          } catch {
-            // Already started, ignore
-          }
+        // Don't log "aborted" errors - they're expected when we pause/stop
+        if (event.error !== "aborted") {
+          console.error("Speech recognition error:", event.error);
         }
       };
 
       // Handle end
       recognition.onend = () => {
-        // Only update state if user explicitly stopped
-        if (isUserStoppingRef.current) {
+        // Only restart if user explicitly started and didn't stop
+        if (isUserStartedRef.current && !isUserStoppingRef.current) {
+          // Restart if not user stopped - recognition ended unexpectedly
+          try {
+            recognition.start();
+          } catch {
+            // Already started, ignore
+          }
+        } else if (isUserStoppingRef.current) {
+          // User explicitly stopped
           setIsListening(false);
           callbacksRef.current.onListeningChange?.(false);
           setTranscript("");
+          accumulatedTranscriptRef.current = ""; // Clear accumulated transcript
           isUserStoppingRef.current = false;
+          isUserStartedRef.current = false;
         }
       };
     }
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.abort();
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // Already aborted, ignore
+        }
       }
     };
   }, [isSupported]);
@@ -157,19 +165,129 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
     if (!recognitionRef.current || !isSupported) return;
 
     setTranscript("");
+    accumulatedTranscriptRef.current = ""; // Reset accumulated transcript
+    isUserStartedRef.current = true; // Mark that user started
+    isUserStoppingRef.current = false; // Make sure stopping flag is false
     setIsListening(true);
     callbacksRef.current.onListeningChange?.(true);
-    recognitionRef.current.start();
+
+    try {
+      recognitionRef.current.start();
+    } catch (error) {
+      // If it fails, the recognition object might be in a bad state
+      console.error("Failed to start recognition:", error);
+      // Try to recreate it
+      const SpeechRecognition = ((window as unknown as Record<string, unknown>)
+        .SpeechRecognition ||
+        (window as unknown as Record<string, unknown>)
+          .webkitSpeechRecognition) as unknown as
+        | { new (): SpeechRecognition }
+        | undefined;
+
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        const recognition = recognitionRef.current;
+
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+          let interim = "";
+          let final = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              final += transcript + " ";
+            } else {
+              interim += transcript;
+            }
+          }
+          const displayText = (
+            accumulatedTranscriptRef.current +
+            " " +
+            final +
+            interim
+          ).trim();
+          setTranscript(displayText);
+          if (final) {
+            accumulatedTranscriptRef.current = (
+              accumulatedTranscriptRef.current +
+              " " +
+              final
+            ).trim();
+            callbacksRef.current.onTranscript?.(
+              accumulatedTranscriptRef.current
+            );
+          }
+        };
+
+        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+          console.error("Speech recognition error:", event.error);
+        };
+
+        recognition.onend = () => {
+          if (isUserStartedRef.current && !isUserStoppingRef.current) {
+            try {
+              recognition.start();
+            } catch {
+              // Already started, ignore
+            }
+          } else if (isUserStoppingRef.current) {
+            setIsListening(false);
+            callbacksRef.current.onListeningChange?.(false);
+            setTranscript("");
+            accumulatedTranscriptRef.current = "";
+            isUserStoppingRef.current = false;
+            isUserStartedRef.current = false;
+          }
+        };
+
+        try {
+          recognition.start();
+        } catch {
+          console.error("Failed to start recreated recognition");
+        }
+      }
+    }
   }, [isSupported]);
 
   const stopListening = useCallback(() => {
     if (!recognitionRef.current) return;
 
+    isUserStartedRef.current = false; // Mark that user stopped
     isUserStoppingRef.current = true;
     recognitionRef.current.stop();
     setIsListening(false);
     callbacksRef.current.onListeningChange?.(false);
   }, []);
+
+  const pauseListening = useCallback(() => {
+    if (!recognitionRef.current || !isUserStartedRef.current) return;
+    isPausedRef.current = true; // Mark as paused
+    try {
+      recognitionRef.current.abort();
+    } catch {
+      // Already stopped, ignore
+    }
+  }, []);
+
+  const resumeListening = useCallback(() => {
+    if (!recognitionRef.current || !isSupported) return;
+    // Only resume if user started and didn't stop (but paused is okay)
+    if (
+      isUserStartedRef.current &&
+      !isUserStoppingRef.current &&
+      isPausedRef.current
+    ) {
+      isPausedRef.current = false; // Mark as resumed
+      try {
+        recognitionRef.current.start();
+      } catch {
+        // Already started, ignore
+      }
+    }
+  }, [isSupported]);
 
   const speak = useCallback((text: string) => {
     if (!("speechSynthesis" in window)) return;
@@ -196,6 +314,8 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
     transcript,
     startListening,
     stopListening,
+    pauseListening,
+    resumeListening,
     speak,
     stopSpeaking,
   };

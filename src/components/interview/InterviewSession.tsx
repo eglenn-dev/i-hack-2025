@@ -47,16 +47,22 @@ export function InterviewSession({
   const [audioLevel, setAudioLevel] = useState(0);
   const router = useRouter();
 
-  const { isListening, isSupported, startListening, stopListening } = useSpeech(
-    {
-      onTranscript: (transcript) => {
-        setCurrentAnswer(transcript);
-      },
-      onListeningChange: (listening) => {
-        setBlobState(listening ? "listening" : "idle");
-      },
-    }
-  );
+  const {
+    isListening,
+    isSupported,
+    transcript,
+    startListening,
+    stopListening,
+    pauseListening,
+    resumeListening,
+  } = useSpeech({
+    onTranscript: (transcript) => {
+      setCurrentAnswer(transcript);
+    },
+    onListeningChange: (listening) => {
+      setBlobState(listening ? "listening" : "idle");
+    },
+  });
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim()) {
@@ -197,11 +203,18 @@ export function InterviewSession({
                     <AudioPlayer
                       audioBase64={message.audioBase64}
                       autoPlay={index === messages.length - 1}
-                      onPlay={() => setBlobState("speaking")}
-                      onPause={() => setBlobState("idle")}
+                      onPlay={() => {
+                        setBlobState("speaking");
+                        pauseListening();
+                      }}
+                      onPause={() => {
+                        setBlobState("idle");
+                        resumeListening();
+                      }}
                       onEnded={() => {
                         setBlobState("idle");
                         setAudioLevel(0);
+                        resumeListening();
                       }}
                       onAudioLevel={setAudioLevel}
                     />
@@ -218,7 +231,7 @@ export function InterviewSession({
           <div className="space-y-4">
             <Textarea
               placeholder="Type your answer here or use the microphone button..."
-              value={currentAnswer}
+              value={isListening ? transcript : currentAnswer}  // <-- CHANGE THIS LINE
               onChange={(e) => setCurrentAnswer(e.target.value)}
               disabled={isLoading}
               className="min-h-[120px]"
