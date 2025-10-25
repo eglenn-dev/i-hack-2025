@@ -88,6 +88,13 @@ export function InterviewSession({
     },
   });
 
+  const playAudio = async(fileName: string) => {
+    setTimeout(() => {
+      const audio = new Audio(fileName);
+      audio.play();
+    }, 2000);
+  }
+
   const handleSubmitAnswer = async () => {
     if (!currentAnswerRef.current.trim()) {
       toast.error("Please provide an answer");
@@ -96,6 +103,9 @@ export function InterviewSession({
 
     setIsLoading(true);
     setBlobState("thinking");
+    if(questionCount < interview.maxQuestions){
+      playAudio("/audio/fillers/filler.mp4");
+    }
 
     try {
       // Use the ref value which is always current

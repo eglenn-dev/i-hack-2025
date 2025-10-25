@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mic, MessageSquare, AlertCircle, ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { Spinner } from "../ui/spinner";
 
 interface ModeSelectionProps {
   onSelectMode: (mode: "speech" | "text") => void;
@@ -55,14 +56,14 @@ export function ModeSelection({ onSelectMode, onBack }: ModeSelectionProps) {
             <Button
               className="w-full"
               size="lg"
-              disabled={isLoading && selectedMode !== "speech"}
+              disabled={isLoading}
               onClick={(e) => {
                 e.stopPropagation();
                 handleModeClick("speech");
               }}
             >
               {isLoading && selectedMode === "speech"
-                ? "Starting..."
+                ? <Spinner />
                 : "Start Speaking"}
             </Button>
           </Card>
@@ -86,14 +87,14 @@ export function ModeSelection({ onSelectMode, onBack }: ModeSelectionProps) {
               className="w-full"
               variant="secondary"
               size="lg"
-              disabled={isLoading && selectedMode !== "text"}
+              disabled={isLoading}
               onClick={(e) => {
                 e.stopPropagation();
                 handleModeClick("text");
               }}
             >
               {isLoading && selectedMode === "text"
-                ? "Starting..."
+                ? <Spinner />
                 : "Start Typing"}
             </Button>
           </Card>
