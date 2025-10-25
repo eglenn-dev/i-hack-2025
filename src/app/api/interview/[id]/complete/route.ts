@@ -60,19 +60,9 @@ export async function POST(
                 interview.company
             );
 
-            if (interview.maxQuestions > userMessageCount) {
-                await db
-                    .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
-                    .updateOne(
-                        { _id: new ObjectId(id) },
-                        {
-                            $set: {
-                                status: "ended_early",
-                            },
-                        }
-                    );
-                return;
-            }
+            // Determine the final status based on whether they completed all questions
+            const status = interview.maxQuestions > userMessageCount ? "ended_early" : "completed";
+
             // Update interview with completion data
             await db
                 .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
@@ -80,7 +70,7 @@ export async function POST(
                     { _id: new ObjectId(id) },
                     {
                         $set: {
-                            status: "completed",
+                            status,
                             grade,
                             feedback,
                             completedAt: new Date(),

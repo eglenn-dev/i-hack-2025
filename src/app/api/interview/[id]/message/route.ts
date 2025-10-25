@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { ObjectId } from "mongodb";
 import { getSession } from "@/lib/auth/session";
 import { getDB, COLLECTIONS, MessageDocument, InterviewDocument } from "@/lib/db/collections";
-import { generateInterviewQuestion, textToSpeech } from "@/lib/gemini";
+import { generateInterviewQuestion, textToSpeech, gradeInterview } from "@/lib/gemini";
 
 export async function POST(
     request: NextRequest,
@@ -79,6 +80,38 @@ export async function POST(
                         },
                     }
                 );
+
+            // Grade the interview in the background
+            after(async () => {
+                const db = await getDB();
+
+                // Get all messages for grading
+                const messages = await db
+                    .collection<MessageDocument>(COLLECTIONS.MESSAGES)
+                    .find({ interviewId: id })
+                    .sort({ timestamp: 1 })
+                    .toArray();
+
+                // Generate grade and feedback using Gemini
+                const { grade, feedback } = await gradeInterview(
+                    messages.map((m) => ({ role: m.role, content: m.content })),
+                    interview.jobTitle,
+                    interview.company
+                );
+
+                // Update interview with grade and feedback
+                await db
+                    .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
+                    .updateOne(
+                        { _id: new ObjectId(id) },
+                        {
+                            $set: {
+                                grade,
+                                feedback,
+                            },
+                        }
+                    );
+            });
 
             return NextResponse.json({ completed: true });
         }
