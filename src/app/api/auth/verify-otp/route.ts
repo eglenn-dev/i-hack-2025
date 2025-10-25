@@ -78,7 +78,10 @@ export async function POST(request: NextRequest) {
                     from: "Olin <welcome@hi.olin.help>",
                     to: email,
                     subject: "Welcome to Olin - Your AI Interview Coach",
-                    react: WelcomeEmail({ userName: email.split("@")[0] }),
+                    react: WelcomeEmail({
+                        userName: email.split("@")[0],
+                        email,
+                    }),
                     scheduledAt: "in 2 minutes",
                 });
             }
