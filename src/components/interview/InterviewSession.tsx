@@ -11,6 +11,7 @@ import { AudioPlayer } from "./AudioPlayer";
 import { AnimatedBlob } from "./animated-blop";
 import { useSpeech } from "@/hooks/use-speech";
 import { Mic, MicOff } from "lucide-react";
+import { EndConversationModal } from "./end-conversation-modal";
 
 interface Message {
   role: "assistant" | "user";
@@ -44,6 +45,7 @@ export function InterviewSession({
   const [blobState, setBlobState] = useState<
     "idle" | "listening" | "speaking" | "thinking"
   >("idle");
+  const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const router = useRouter();
 
@@ -170,7 +172,6 @@ export function InterviewSession({
   };
 
   const handleEndEarly = async () => {
-    if (confirm("Are you sure you want to end the interview early?")) {
       try {
         const response = await fetch(
           `/api/interview/${interview._id}/complete`,
@@ -188,8 +189,7 @@ export function InterviewSession({
       } catch {
         toast.error("An error occurred");
       }
-    }
-  };
+    };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -207,14 +207,15 @@ export function InterviewSession({
               <p className="text-sm font-medium">
                 Question {questionCount} of {interview.maxQuestions}
               </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleEndEarly}
-                className="text-red-600 hover:text-red-700"
-              >
-                End Early
+              <Button className='px-1.5'variant="outline" size="sm" onClick={() => setInterviewModalOpen(true)}>
+                End Interview
               </Button>
+              <EndConversationModal
+                open={interviewModalOpen}
+                onOpenChange={setInterviewModalOpen}
+                onConfirm={handleEndEarly}
+                conversationType="interview"
+              />
             </div>
           </div>
         </CardHeader>

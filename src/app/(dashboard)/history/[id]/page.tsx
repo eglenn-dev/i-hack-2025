@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
+import { DeleteInterview } from "@/components/interview/delete-interview";
 
 export default async function InterviewDetailPage({
     params,
@@ -38,6 +38,7 @@ export default async function InterviewDetailPage({
         });
 
     if (!interview) notFound();
+    
 
     // Fetch all messages
     const messages = await db
@@ -47,7 +48,7 @@ export default async function InterviewDetailPage({
         .toArray();
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+        <div className="min-h-screen bg-linear-to-br dark:from-gray-900 dark:to-gray-800 p-8">
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -66,11 +67,14 @@ export default async function InterviewDetailPage({
 
                 {/* Interview Info */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>{interview.jobTitle}</CardTitle>
-                        <CardDescription>
-                            {interview.company} • {interview.location}
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                        <div>
+                            <CardTitle>{interview.jobTitle}</CardTitle>
+                            <CardDescription>
+                                {interview.company} • {interview.location}
+                            </CardDescription>
+                        </div>
+                          <DeleteInterview _id={interview._id.toString()} />
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -125,6 +129,7 @@ export default async function InterviewDetailPage({
                                         Grading in progress...
                                     </p>
                                 )}
+
                             </div>
                         </div>
                     </CardContent>
@@ -138,9 +143,7 @@ export default async function InterviewDetailPage({
                     <CardContent>
                         {interview.feedback ? (
                             <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                                <ReactMarkdown>
-                                    {interview.feedback}
-                                </ReactMarkdown>
+                                {interview.feedback}
                             </p>
                         ) : (
                             <p className="text-sm text-gray-500 dark:text-gray-400 italic">
