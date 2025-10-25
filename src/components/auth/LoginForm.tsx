@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -43,7 +43,7 @@ export function LoginForm() {
                 toast.error(data.error || "Failed to send OTP");
             }
         } catch (error) {
-            toast.error("An error occurred. Please try again.");
+            toast.error(`An error occurred, ${error}. Please try again.`);
         } finally {
             setIsLoading(false);
         }
