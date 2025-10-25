@@ -1,9 +1,9 @@
 'use client' // Error boundaries must be Client Components
  
 import { Button } from '@/components/ui/button'
-import { AlertCircle, Home, RefreshCcw } from 'lucide-react'
-import Link from 'next/link'
+import { AlertCircle, ArrowLeft, RefreshCcw } from 'lucide-react'
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
  
 export default function Error({
   error,
@@ -16,6 +16,8 @@ export default function Error({
     // Log the error to an error reporting service
     console.error(error)
   }, [error])
+
+  const router = useRouter();
  
   return (
         <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
@@ -59,14 +61,12 @@ export default function Error({
                 Try Again
               </Button>
               <Button
-                asChild
                 variant="outline"
                 className="border-zinc-300 bg-white hover:bg-zinc-50 text-zinc-900 px-6"
+                onClick={()=>router.back()}
               >
-                <Link href="/">
-                  <Home className="w-4 h-4 mr-2" />
-                  Go Home
-                </Link>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Go Back
               </Button>
             </div>
 
