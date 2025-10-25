@@ -31,10 +31,10 @@ export default function RootLayout({
       >
         {children}
         <Toaster />
+        <footer>
+          <Footer />
+        </footer>
       </body>
-      <footer>
-        <Footer />
-      </footer>
     </html>
   );
 }
