@@ -18,7 +18,6 @@ import {
 import { Home, History, Play, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 
@@ -27,8 +26,17 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     const pathname = usePathname();
+
+    const handleLogout = async () => {
+        const formData = new FormData();
+        await fetch("/api/auth/logout", {
+            method: "POST",
+            body: formData,
+        });
+        window.location.href = "/";
+    };
 
     return (
         <SidebarProvider open={isOpen} onOpenChange={setIsOpen}>
@@ -102,21 +110,12 @@ export default function DashboardLayout({
                 <SidebarFooter>
                     <SidebarMenu>
                         <SidebarMenuItem>
-                            <SidebarMenuButton asChild>
-                                <form
-                                    action="/api/auth/logout"
-                                    method="POST"
-                                    className="w-full"
-                                >
-                                    <Button
-                                        type="submit"
-                                        variant="ghost"
-                                        className="w-full justify-start p-2 h-auto"
-                                    >
-                                        <LogOut className="mr-2 size-4" />
-                                        <span>Logout</span>
-                                    </Button>
-                                </form>
+                            <SidebarMenuButton
+                                className="cursor-pointer"
+                                onClick={handleLogout}
+                            >
+                                <LogOut className="mr-2" />
+                                <span>Logout</span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     </SidebarMenu>
