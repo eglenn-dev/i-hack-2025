@@ -81,7 +81,12 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
-        console.log(`Result ${i}:`, transcript, "Final:", event.results[i].isFinal);
+        console.log(
+          `Result ${i}:`,
+          transcript,
+          "Final:",
+          event.results[i].isFinal
+        );
 
         if (event.results[i].isFinal) {
           finalTranscript += transcript + " ";
@@ -91,7 +96,10 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
       // If we have final results, accumulate them
       if (finalTranscript) {
         accumulatedTranscriptRef.current += finalTranscript;
-        console.log("Updated accumulated transcript:", accumulatedTranscriptRef.current);
+        console.log(
+          "Updated accumulated transcript:",
+          accumulatedTranscriptRef.current
+        );
         onTranscript(accumulatedTranscriptRef.current.trim());
       }
     };
