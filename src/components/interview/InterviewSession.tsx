@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,6 +47,14 @@ export function InterviewSession({
   const [audioLevel, setAudioLevel] = useState(0);
   const router = useRouter();
 
+  // Use ref to avoid stale closure in onListeningChange
+  const currentAnswerRef = useRef("");
+
+  // Keep ref in sync with state for both speech and text modes
+  useEffect(() => {
+    currentAnswerRef.current = currentAnswer;
+  }, [currentAnswer]);
+
   const {
     isListening,
     isSupported,
@@ -56,19 +64,25 @@ export function InterviewSession({
     resumeListening,
   } = useSpeech({
     onTranscript: (transcript) => {
+      currentAnswerRef.current = transcript;
       setCurrentAnswer(transcript);
     },
     onListeningChange: (listening) => {
       setBlobState(listening ? "listening" : "idle");
       // Auto-submit when user stops listening in speech mode
-      if (!listening && currentAnswer.trim() && interview.mode === "speech") {
+      if (
+        !listening &&
+        currentAnswerRef.current.trim() &&
+        interview.mode === "speech"
+      ) {
+        console.log("Auto-submitting:", currentAnswerRef.current);
         handleSubmitAnswer();
       }
     },
   });
 
   const handleSubmitAnswer = async () => {
-    if (!currentAnswer.trim()) {
+    if (!currentAnswerRef.current.trim()) {
       toast.error("Please provide an answer");
       return;
     }
@@ -77,15 +91,19 @@ export function InterviewSession({
     setBlobState("thinking");
 
     try {
+      // Use the ref value which is always current
+      const answerContent = currentAnswerRef.current;
+
       // Add user message to the conversation
       const userMessage: Message = {
         role: "user",
-        content: currentAnswer,
+        content: answerContent,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, userMessage]);
       setCurrentAnswer("");
+      currentAnswerRef.current = "";
 
       // Send answer to API and get next question
       const response = await fetch(`/api/interview/${interview._id}/message`, {
@@ -94,7 +112,7 @@ export function InterviewSession({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          content: currentAnswer,
+          content: answerContent,
         }),
       });
 
@@ -204,83 +222,12 @@ export function InterviewSession({
         </div>
       )}
 
-      {/* Conversation */}
+      {/* Conversation - Show messages in text mode only, audio in speech mode */}
       {interview.mode === "text" && (
         <Card>
           <CardContent className="pt-6">
-            {interview.mode === "text" && (
-              <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-lg ${
-                      message.role === "assistant"
-                        ? "bg-blue-100 dark:bg-blue-900"
-                        : "bg-gray-100 dark:bg-gray-800"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <p className="text-sm font-semibold">
-                        {message.role === "assistant" ? "Interviewer" : "You"}
-                      </p>
-                      {message.role === "assistant" && message.audioBase64 && (
-                        <AudioPlayer
-                          audioBase64={message.audioBase64}
-                          autoPlay={index === messages.length - 1}
-                          onPlay={() => {
-                            setBlobState("speaking");
-                            pauseListening();
-                          }}
-                          onPause={() => {
-                            setBlobState("idle");
-                            resumeListening();
-                          }}
-                          onEnded={() => {
-                            setBlobState("idle");
-                            setAudioLevel(0);
-                            resumeListening();
-                          }}
-                          onAudioLevel={setAudioLevel}
-                        />
-                      )}
-                    </div>
-                    <p className="text-gray-900 dark:text-gray-100">
-                      {message.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Answer Input - Only show in text mode */}
-            {interview.mode === "text" && (
-              <div className="space-y-4">
-                <Textarea
-                  placeholder="Type your answer here..."
-                  value={currentAnswer}
-                  onChange={(e) => setCurrentAnswer(e.target.value)}
-                  disabled={isLoading}
-                  className="min-h-[120px]"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && e.ctrlKey) {
-                      handleSubmitAnswer();
-                    }
-                  }}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    onClick={handleSubmitAnswer}
-                    disabled={isLoading || !currentAnswer.trim()}
-                  >
-                    {isLoading ? "Submitting..." : "Submit Answer"}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Speech Mode - Show messages only */}
-            {/* {interview.mode === "speech" && ( */}
-            <div className="space-y-4 max-h-[400px] overflow-y-auto">
+            {/* Messages display for text mode */}
+            <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -297,19 +244,16 @@ export function InterviewSession({
                     {message.role === "assistant" && message.audioBase64 && (
                       <AudioPlayer
                         audioBase64={message.audioBase64}
-                        autoPlay={index === messages.length - 1}
+                        autoPlay={false}
                         onPlay={() => {
                           setBlobState("speaking");
-                          pauseListening();
                         }}
                         onPause={() => {
                           setBlobState("idle");
-                          resumeListening();
                         }}
                         onEnded={() => {
                           setBlobState("idle");
                           setAudioLevel(0);
-                          resumeListening();
                         }}
                         onAudioLevel={setAudioLevel}
                       />
@@ -321,9 +265,60 @@ export function InterviewSession({
                 </div>
               ))}
             </div>
-            {/* )} */}
+
+            {/* Answer Input - Only show in text mode */}
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Type your answer here..."
+                value={currentAnswer}
+                onChange={(e) => setCurrentAnswer(e.target.value)}
+                disabled={isLoading}
+                className="min-h-[120px]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.ctrlKey) {
+                    handleSubmitAnswer();
+                  }
+                }}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  onClick={handleSubmitAnswer}
+                  disabled={isLoading || !currentAnswer.trim()}
+                >
+                  {isLoading ? "Submitting..." : "Submit Answer"}
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Speech Mode - Audio only */}
+      {interview.mode === "speech" && (
+        <div className="flex justify-center py-8">
+          {messages.length > 0 &&
+            messages[messages.length - 1].role === "assistant" &&
+            messages[messages.length - 1].audioBase64 && (
+              <AudioPlayer
+                audioBase64={messages[messages.length - 1].audioBase64!}
+                autoPlay={true}
+                onPlay={() => {
+                  setBlobState("speaking");
+                  pauseListening();
+                }}
+                onPause={() => {
+                  setBlobState("idle");
+                  resumeListening();
+                }}
+                onEnded={() => {
+                  setBlobState("idle");
+                  setAudioLevel(0);
+                  resumeListening();
+                }}
+                onAudioLevel={setAudioLevel}
+              />
+            )}
+        </div>
       )}
     </div>
   );

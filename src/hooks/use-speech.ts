@@ -51,6 +51,7 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const accumulatedTranscriptRef = useRef("");
+  const shouldListenRef = useRef(false); // Track if user wants to listen
   const isSupported = isSpeechSupported();
 
   // Store callbacks in refs to avoid recreating recognition
@@ -129,9 +130,21 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
 
     // Handle end
     recognition.onend = () => {
-      console.log("Speech recognition ended");
+      console.log(
+        "Speech recognition ended, shouldListen:",
+        shouldListenRef.current
+      );
       setIsListening(false);
       onListeningChangeRef.current?.(false);
+      // If user still wants to listen and it ended unexpectedly, restart
+      if (shouldListenRef.current) {
+        console.log("Restarting recognition as user still wants to listen");
+        try {
+          recognition.start();
+        } catch {
+          // Already started or other error
+        }
+      }
     };
 
     return () => {
@@ -152,14 +165,17 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
     }
 
     console.log("Starting speech recognition");
+    shouldListenRef.current = true;
     accumulatedTranscriptRef.current = "";
     setIsListening(true);
     onListeningChangeRef.current?.(true);
 
     try {
       recognitionRef.current.start();
+      console.log("Speech recognition started successfully");
     } catch (error) {
       console.error("Failed to start speech recognition:", error);
+      shouldListenRef.current = false;
       setIsListening(false);
       onListeningChangeRef.current?.(false);
     }
@@ -169,6 +185,7 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
     if (!recognitionRef.current) return;
 
     console.log("Stopping speech recognition");
+    shouldListenRef.current = false;
     try {
       recognitionRef.current.stop();
     } catch (error) {
@@ -182,6 +199,8 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
   const pauseListening = useCallback(() => {
     if (!recognitionRef.current) return;
 
+    console.log("Pausing listening");
+    shouldListenRef.current = false;
     try {
       recognitionRef.current.abort();
     } catch {
@@ -192,6 +211,13 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
   const resumeListening = useCallback(() => {
     if (!recognitionRef.current || !isSupported) return;
 
+    // Only resume if user had listening enabled before pause
+    if (!shouldListenRef.current) {
+      console.log("Resume called but shouldListen is false, skipping");
+      return;
+    }
+
+    console.log("Resuming listening");
     try {
       recognitionRef.current.start();
     } catch {
