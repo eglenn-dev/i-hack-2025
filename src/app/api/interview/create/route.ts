@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { jobTitle, company, location, description, maxQuestions } =
+    const { jobTitle, company, location, description, maxQuestions, mode } =
       await request.json();
 
-    if (!jobTitle || !company || !location || !maxQuestions) {
+    if (!jobTitle || !company || !location || !maxQuestions || !mode) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate mode is either 'speech' or 'text'
+    if (mode !== "speech" && mode !== "text") {
+      return NextResponse.json(
+        { error: "mode must be either 'speech' or 'text'" },
+        { status: 400 }
+      );
+    }
+
     // Create interview document
     const db = await getDB();
     const interview: InterviewDocument = {
@@ -46,6 +54,7 @@ export async function POST(request: NextRequest) {
       location,
       description,
       maxQuestions,
+      mode,
       status: "in_progress",
       createdAt: new Date(),
     };
