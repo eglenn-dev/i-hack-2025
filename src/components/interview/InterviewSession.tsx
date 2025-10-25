@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { InterviewDocument } from "@/lib/db/collections";
 import { AudioPlayer } from "./AudioPlayer";
 import { AnimatedBlob } from "./animated-blop";
+import { useSpeech } from "@/hooks/use-speech";
+import { Mic, MicOff } from "lucide-react";
 
 interface Message {
   role: "assistant" | "user";
@@ -44,6 +46,17 @@ export function InterviewSession({
   >("idle");
   const [audioLevel, setAudioLevel] = useState(0);
   const router = useRouter();
+
+  const { isListening, isSupported, startListening, stopListening } = useSpeech(
+    {
+      onTranscript: (transcript) => {
+        setCurrentAnswer(transcript);
+      },
+      onListeningChange: (listening) => {
+        setBlobState(listening ? "listening" : "idle");
+      },
+    }
+  );
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim()) {
@@ -204,7 +217,7 @@ export function InterviewSession({
           {/* Answer Input */}
           <div className="space-y-4">
             <Textarea
-              placeholder="Type your answer here..."
+              placeholder="Type your answer here or use the microphone button..."
               value={currentAnswer}
               onChange={(e) => setCurrentAnswer(e.target.value)}
               disabled={isLoading}
@@ -215,16 +228,45 @@ export function InterviewSession({
                 }
               }}
             />
-            <div className="flex justify-between items-center">
-              <p className="text-xs text-gray-500">
-                Press Ctrl+Enter to submit
-              </p>
-              <Button
-                onClick={handleSubmitAnswer}
-                disabled={isLoading || !currentAnswer.trim()}
-              >
-                {isLoading ? "Submitting..." : "Submit Answer"}
-              </Button>
+            <div className="flex justify-between items-center gap-2">
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-gray-500">
+                  Press Ctrl+Enter to submit
+                </p>
+                {isSupported && (
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    ✓ Voice enabled
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {isSupported && (
+                  <Button
+                    onClick={isListening ? stopListening : startListening}
+                    variant={isListening ? "destructive" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    {isListening ? (
+                      <>
+                        <MicOff className="w-4 h-4" />
+                        Stop Listening
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-4 h-4" />
+                        Speak
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Button
+                  onClick={handleSubmitAnswer}
+                  disabled={isLoading || !currentAnswer.trim()}
+                >
+                  {isLoading ? "Submitting..." : "Submit Answer"}
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
