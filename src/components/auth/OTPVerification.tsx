@@ -3,8 +3,18 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { toast } from "sonner";
 
 interface OTPVerificationProps {
@@ -54,6 +64,7 @@ export function OTPVerification({ email }: OTPVerificationProps) {
                 setOtp("");
             }
         } catch (error) {
+            console.log(error);
             toast.error("An error occurred. Please try again.");
         } finally {
             setIsLoading(false);
@@ -80,6 +91,7 @@ export function OTPVerification({ email }: OTPVerificationProps) {
                 toast.error("Failed to resend OTP");
             }
         } catch (error) {
+            console.log(error);
             toast.error("An error occurred");
         } finally {
             setIsLoading(false);
@@ -120,14 +132,19 @@ export function OTPVerification({ email }: OTPVerificationProps) {
                     <div className="text-center text-sm text-muted-foreground">
                         {countdown > 0 ? (
                             <p>
-                                Code expires in {minutes}:{seconds.toString().padStart(2, "0")}
+                                Code expires in {minutes}:
+                                {seconds.toString().padStart(2, "0")}
                             </p>
                         ) : (
                             <p className="text-destructive">Code expired</p>
                         )}
                     </div>
 
-                    <Button type="submit" className="w-full" disabled={isLoading || countdown === 0}>
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isLoading || countdown === 0}
+                    >
                         {isLoading ? "Verifying..." : "Verify OTP"}
                     </Button>
 
