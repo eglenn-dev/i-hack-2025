@@ -27,9 +27,14 @@ export default async function InterviewPage({ params }: { params: Promise<{ id: 
         redirect(`/history/${id}`);
     }
 
+    // Ensure mode is set for backward compatibility
+    if (!interview.mode) {
+        interview.mode = "speech";
+    }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 p-8">
-            <InterviewSessionWrapper interview={{ ...interview, _id: id }} />
+        <div className="min-h-screen bg-linear-to-br dark:from-gray-900 dark:to-gray-800 p-8">
+            <InterviewSessionWrapper interview={{ ...interview, _id: id as never }} />
         </div>
     );
 }

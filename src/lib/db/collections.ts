@@ -18,18 +18,19 @@ export interface OTPDocument {
 }
 
 export interface InterviewDocument {
-    _id?: ObjectId;
-    userId: string; // User email or _id string
-    jobTitle: string;
-    company: string;
-    location: string;
-    description?: string;
-    maxQuestions: number;
-    status: "in_progress" | "completed" | "ended_early";
-    grade?: number;
-    feedback?: string;
-    createdAt: Date;
-    completedAt?: Date;
+  _id?: ObjectId;
+  userId: string; // User email or _id string
+  jobTitle: string;
+  company: string;
+  location: string;
+  description?: string;
+  maxQuestions: number;
+  mode: "speech" | "text";
+  status: "in_progress" | "completed" | "ended_early";
+  grade?: number;
+  feedback?: string;
+  createdAt: Date;
+  completedAt?: Date;
 }
 
 export interface MessageDocument {
