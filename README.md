@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Interview Practice MVP
 
-## Getting Started
+A text-based AI interview practice application where users can conduct mock interviews with an AI interviewer. The system provides real-time interaction, saves conversation history, and grades interview performance.
 
-First, run the development server:
+## Features
+
+- **Email OTP Authentication**: Secure passwordless login with JWT sessions
+- **Interview Setup**: Customize interviews by job title, company, location, and description
+- **AI-Powered Questions**: Dynamic question generation using Google Gemini API
+- **Text-Based Interview**: Practice interviews with text responses
+- **Automatic Grading**: AI-powered performance evaluation with detailed feedback
+- **Interview History**: Review past interviews with full transcripts and grades
+- **Performance Stats**: Track your progress with average grades and statistics
+
+## Technology Stack
+
+- **Framework**: Next.js 14+ (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Database**: MongoDB with connection pooling
+- **Authentication**: JWT-based session management with email OTP
+- **Email Service**: Resend
+- **AI Services**: Google Gemini API
+- **Deployment**: Vercel-ready
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Node.js 18+ installed
+- A MongoDB database (MongoDB Atlas recommended)
+- A Resend account for email sending
+- A Google Gemini API key
+
+## Setup Instructions
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Set Up Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+Required environment variables:
+- `MONGO_CONNECTION_STRING` - MongoDB connection string
+- `RESEND_API_KEY` - Resend API key for sending emails
+- `GEMINI_API_KEY` - Google Gemini API key
+- `SECRET_KEY` - Random 32+ character string for JWT signing
+- `NEXT_PUBLIC_APP_URL` - Your app URL (http://localhost:3000 for development)
+
+### 3. Get Your API Keys
+
+#### MongoDB
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Create a free cluster
+3. Get your connection string
+
+#### Resend
+1. Sign up at [Resend](https://resend.com)
+2. Get your API key from the dashboard
+3. Note: For development, use `onboarding@resend.dev` as the sender email
+
+#### Google Gemini
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create an API key
+
+### 4. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Sign In
+- Enter your email address
+- Check your email for the 6-digit OTP code
+- Enter the code to log in
 
-## Learn More
+### 2. Start a New Interview
+- From the dashboard, click "Start Interview"
+- Fill in the interview details
+- Click "Start Interview"
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Conduct the Interview
+- Read the AI-generated question
+- Type your response
+- Press Ctrl+Enter or click "Submit Answer"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. View Results
+- After completing the interview, view your grade and feedback
+- Review the full transcript
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+### Vercel Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push your code to GitHub
+2. Go to [Vercel](https://vercel.com)
+3. Import your repository
+4. Add environment variables in Vercel dashboard
+5. Deploy!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+MIT
