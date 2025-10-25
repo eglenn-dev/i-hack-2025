@@ -13,7 +13,7 @@ export default async function DashboardPage() {
     const stats = await getUserStats(session.email);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 p-8">
+        <div className="min-h-screen bg-linear-to-br dark:from-gray-900 dark:to-gray-800 p-8">
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
                 <div>
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* Start New Interview */}
-                <Card className="bg-gradient-to-r from-blue-500 to--600 border-none text-white">
+                <Card className="bg-linear-to-r from-blue-500 to--600 border-none text-white">
                     <CardHeader>
                         <CardTitle className="text-white">Start a New Interview</CardTitle>
                         <CardDescription className="text-blue-100">
