@@ -16,10 +16,18 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Home, History, Play, LogOut } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getProfile } from "./actions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
+
+interface Profile {
+    email: string;
+    name?: string;
+    profilePictureUrl?: string;
+}
 
 export default function DashboardLayout({
     children,
@@ -27,7 +35,16 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const [isOpen, setIsOpen] = useState(true);
+    const [userProfile, setUserProfile] = useState<Profile | null>(null);
     const pathname = usePathname();
+
+    useEffect(() => {
+        async function fetchProfilePhoto() {
+            const photo = await getProfile();
+            setUserProfile(photo);
+        }
+        fetchProfilePhoto();
+    }, []);
 
     const handleLogout = async () => {
         const formData = new FormData();
@@ -108,7 +125,31 @@ export default function DashboardLayout({
                     </SidebarGroup>
                 </SidebarContent>
                 <SidebarFooter>
-                    <SidebarMenu>
+                    <SidebarMenu className="flex flex-col gap-4">
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild>
+                                <Link
+                                    href="/profile"
+                                    className="flex items-center gap-2 h-12"
+                                >
+                                    <Avatar className="h-8 w-8 max-h-full max-w-full shrink-0">
+                                        <AvatarImage
+                                            src={userProfile?.profilePictureUrl}
+                                            alt={userProfile?.name || ""}
+                                        />
+                                        <AvatarFallback>
+                                            {userProfile?.email?.[0] || "?"}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    {isOpen && (
+                                        <span className="truncate">
+                                            {userProfile?.name ||
+                                                userProfile?.email}
+                                        </span>
+                                    )}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                         <SidebarMenuItem>
                             <SidebarMenuButton
                                 className="cursor-pointer"
