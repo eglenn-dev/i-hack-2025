@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
 
 interface OTPVerificationProps {
@@ -12,10 +12,9 @@ interface OTPVerificationProps {
 }
 
 export function OTPVerification({ email }: OTPVerificationProps) {
-    const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+    const [otp, setOtp] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [countdown, setCountdown] = useState(600); // 10 minutes
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const router = useRouter();
 
     useEffect(() => {
@@ -26,30 +25,10 @@ export function OTPVerification({ email }: OTPVerificationProps) {
         return () => clearInterval(timer);
     }, []);
 
-    const handleChange = (index: number, value: string) => {
-        if (!/^\d*$/.test(value)) return;
-
-        const newOtp = [...otp];
-        newOtp[index] = value.slice(-1);
-        setOtp(newOtp);
-
-        // Auto-advance to next input
-        if (value && index < 5) {
-            inputRefs.current[index + 1]?.focus();
-        }
-    };
-
-    const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-        if (e.key === "Backspace" && !otp[index] && index > 0) {
-            inputRefs.current[index - 1]?.focus();
-        }
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const otpCode = otp.join("");
-        if (otpCode.length !== 6) {
+        if (otp.length !== 6) {
             toast.error("Please enter the complete OTP");
             return;
         }
@@ -62,7 +41,7 @@ export function OTPVerification({ email }: OTPVerificationProps) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, otp: otpCode }),
+                body: JSON.stringify({ email, otp }),
             });
 
             const data = await response.json();
@@ -72,8 +51,7 @@ export function OTPVerification({ email }: OTPVerificationProps) {
                 router.push("/dashboard");
             } else {
                 toast.error(data.error || "Invalid OTP");
-                setOtp(["", "", "", "", "", ""]);
-                inputRefs.current[0]?.focus();
+                setOtp("");
             }
         } catch (error) {
             toast.error("An error occurred. Please try again.");
@@ -97,7 +75,7 @@ export function OTPVerification({ email }: OTPVerificationProps) {
             if (response.ok) {
                 toast.success("New OTP sent!");
                 setCountdown(600);
-                setOtp(["", "", "", "", "", ""]);
+                setOtp("");
             } else {
                 toast.error("Failed to resend OTP");
             }
@@ -121,23 +99,22 @@ export function OTPVerification({ email }: OTPVerificationProps) {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="flex gap-2 justify-center">
-                        {otp.map((digit, index) => (
-                            <Input
-                                key={index}
-                                ref={(el) => {
-                                    inputRefs.current[index] = el;
-                                }}
-                                type="text"
-                                inputMode="numeric"
-                                maxLength={1}
-                                value={digit}
-                                onChange={(e) => handleChange(index, e.target.value)}
-                                onKeyDown={(e) => handleKeyDown(index, e)}
-                                disabled={isLoading}
-                                className="w-12 h-12 text-center text-lg"
-                            />
-                        ))}
+                    <div className="flex justify-center">
+                        <InputOTP
+                            maxLength={6}
+                            value={otp}
+                            onChange={(value) => setOtp(value)}
+                            disabled={isLoading}
+                        >
+                            <InputOTPGroup>
+                                <InputOTPSlot index={0} />
+                                <InputOTPSlot index={1} />
+                                <InputOTPSlot index={2} />
+                                <InputOTPSlot index={3} />
+                                <InputOTPSlot index={4} />
+                                <InputOTPSlot index={5} />
+                            </InputOTPGroup>
+                        </InputOTP>
                     </div>
 
                     <div className="text-center text-sm text-muted-foreground">
