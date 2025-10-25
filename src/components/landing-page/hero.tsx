@@ -38,9 +38,9 @@ export function Hero() {
                                     <ArrowRight className="h-4 w-4" />
                                 </Button>
                             </Link>
-                            <Button size="lg" variant="outline">
+                            {/* <Button size="lg" variant="outline">
                                 Watch Demo
-                            </Button>
+                            </Button> */}
                         </div>
                     </div>
 
