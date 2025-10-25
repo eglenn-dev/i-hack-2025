@@ -58,12 +58,12 @@ export default function DashboardLayout({
     return (
         <SidebarProvider open={isOpen} onOpenChange={setIsOpen}>
             <Sidebar side="left" variant="sidebar" collapsible="icon">
-                <SidebarHeader>
+                <SidebarHeader className="mt-2">
                     <div className="flex items-center w-full h-10 px-2">
                         <Sparkles className={isOpen ? "mr-2" : ""} />
                         {isOpen && (
-                            <h2 className="text-lg font-semibold">
-                                Interview Prep
+                            <h2 className="text-lg bg-blue-600 rounded-lg p-3 py-2 text-white font-semibold">
+                                Olin
                             </h2>
                         )}
                     </div>
