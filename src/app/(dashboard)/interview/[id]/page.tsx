@@ -28,7 +28,7 @@ export default async function InterviewPage({ params }: { params: Promise<{ id: 
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+        <div className="min-h-screen bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 p-8">
             <InterviewSessionWrapper interview={{ ...interview, _id: id }} />
         </div>
     );
