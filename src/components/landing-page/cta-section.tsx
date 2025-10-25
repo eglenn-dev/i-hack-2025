@@ -10,18 +10,16 @@ export function CTASection() {
           Ready to Ace Your Next Interview?
         </h2>
         <p className="text-pretty text-lg text-muted-foreground mb-8 leading-relaxed">
-          Join thousands of job seekers who have improved their interview skills and landed their dream jobs with
-          InterviewAI.
+          Improve your interview skills and land your dream job with InterviewAI.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href='/login'>
                 <Button size="lg" className="gap-2">
-                  Get Started Free
+                  Get Started
                   <ArrowRight className="h-4 w-4" />
                 </Button>
             </Link>
         </div>
-        <p className="mt-6 text-sm text-muted-foreground">No credit card required. Start practicing in minutes.</p>
       </div>
     </section>
   )
