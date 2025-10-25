@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
                     to: email,
                     subject: "Welcome to Olin - Your AI Interview Coach",
                     react: WelcomeEmail({ userName: email.split("@")[0] }),
-                    scheduledAt: "2 minutes",
+                    scheduledAt: "in 2 minutes",
                 });
             }
         });
