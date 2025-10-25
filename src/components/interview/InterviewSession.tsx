@@ -51,6 +51,7 @@ export function InterviewSession({
   const currentAnswerRef = useRef("");
   // Ref for auto-scrolling to bottom of messages
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isSubmittingRef = useRef(false); // Prevent duplicate submissions
 
   // Keep ref in sync with state for both speech and text modes
   useEffect(() => {
@@ -80,9 +81,11 @@ export function InterviewSession({
       if (
         !listening &&
         currentAnswerRef.current.trim() &&
-        interview.mode === "speech"
+        interview.mode === "speech" &&
+        !isSubmittingRef.current
       ) {
         console.log("Auto-submitting:", currentAnswerRef.current);
+        isSubmittingRef.current = true; // Prevent duplicate submissions
         handleSubmitAnswer();
       }
     },
@@ -98,6 +101,7 @@ export function InterviewSession({
   const handleSubmitAnswer = async () => {
     if (!currentAnswerRef.current.trim()) {
       toast.error("Please provide an answer");
+      isSubmittingRef.current = false;
       return;
     }
 
@@ -161,6 +165,7 @@ export function InterviewSession({
       toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false; // Reset flag after submission completes
     }
   };
 
