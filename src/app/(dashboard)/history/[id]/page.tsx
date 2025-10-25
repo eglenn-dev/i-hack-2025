@@ -137,11 +137,9 @@ export default async function InterviewDetailPage({
                     </CardHeader>
                     <CardContent>
                         {interview.feedback ? (
-                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                                <ReactMarkdown>
+                            <ReactMarkdown>
                                     {interview.feedback}
-                                </ReactMarkdown>
-                            </p>
+                            </ReactMarkdown>
                         ) : (
                             <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                                 Feedback will be available once grading is

@@ -91,7 +91,7 @@ Evaluate the candidate based on these criteria (total 100 points):
 Provide your response in this exact format:
 GRADE: [number between 0-100]
 FEEDBACK:
-[Detailed paragraph analyzing the interview performance, highlighting strengths and areas for improvement. Be specific and constructive.]`;
+[Detailed bullet points analyzing the interview performance, highlighting strengths and areas for improvement. Be specific and constructive.]`;
 
   const result = await model.generateContent(prompt);
   const response = result.response;
