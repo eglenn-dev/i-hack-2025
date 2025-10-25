@@ -119,8 +119,8 @@ interface WavConversionOptions {
 }
 
 function parseMimeType(mimeType: string): WavConversionOptions {
-    const [fileType, ...params] = mimeType.split(";").map((s) => s.trim());
-    const [_, format] = fileType.split("/");
+    const [fileType, ...params] = mimeType.split(";").map((s: string) => s.trim());
+    const [, format] = fileType.split("/");
 
     const options: Partial<WavConversionOptions> = {
         numChannels: 1,
@@ -134,7 +134,7 @@ function parseMimeType(mimeType: string): WavConversionOptions {
     }
 
     for (const param of params) {
-        const [key, value] = param.split("=").map((s) => s.trim());
+        const [key, value] = param.split("=").map((s: string) => s.trim());
         if (key === "rate") {
             options.sampleRate = parseInt(value, 10);
         }
@@ -225,6 +225,7 @@ export async function textToSpeech(text: string): Promise<string> {
 
             if (!fileExtension) {
                 fileExtension = "wav";
+                // @ts-expect-error - Buffer type compatibility issue with different ArrayBuffer types
                 buffer = convertToWav(
                     inlineData.data || "",
                     inlineData.mimeType || ""
