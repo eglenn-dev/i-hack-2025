@@ -50,7 +50,6 @@ export function InterviewSession({
   const {
     isListening,
     isSupported,
-    transcript,
     startListening,
     stopListening,
     pauseListening,
@@ -231,7 +230,7 @@ export function InterviewSession({
           <div className="space-y-4">
             <Textarea
               placeholder="Type your answer here or use the microphone button..."
-              value={isListening ? transcript : currentAnswer}  // <-- CHANGE THIS LINE
+              value={currentAnswer}
               onChange={(e) => setCurrentAnswer(e.target.value)}
               disabled={isLoading}
               className="min-h-[120px]"
