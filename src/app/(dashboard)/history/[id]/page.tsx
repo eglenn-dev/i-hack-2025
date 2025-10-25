@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { DeleteInterview } from "@/components/interview/delete-interview";
 import ReactMarkdown from "react-markdown";
 
 export default async function InterviewDetailPage({
@@ -38,6 +39,7 @@ export default async function InterviewDetailPage({
         });
 
     if (!interview) notFound();
+    
 
     // Fetch all messages
     const messages = await db
@@ -47,30 +49,33 @@ export default async function InterviewDetailPage({
         .toArray();
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+        <div className="min-h-screen bg-linear-to-br dark:from-gray-900 dark:to-gray-800 p-8">
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                         Interview Details
                     </h1>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Link href="/history">
-                            <Button variant="outline">Back to History</Button>
+                            <Button variant="outline" className="w-full sm:w-auto">Back to History</Button>
                         </Link>
                         <Link href="/dashboard/setup">
-                            <Button>New Interview</Button>
+                            <Button className="w-full sm:w-auto">New Interview</Button>
                         </Link>
                     </div>
                 </div>
 
                 {/* Interview Info */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>{interview.jobTitle}</CardTitle>
-                        <CardDescription>
-                            {interview.company} • {interview.location}
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                        <div>
+                            <CardTitle>{interview.jobTitle}</CardTitle>
+                            <CardDescription>
+                                {interview.company} • {interview.location}
+                            </CardDescription>
+                        </div>
+                          <DeleteInterview _id={interview._id.toString()} />
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -125,6 +130,7 @@ export default async function InterviewDetailPage({
                                         Grading in progress...
                                     </p>
                                 )}
+
                             </div>
                         </div>
                     </CardContent>

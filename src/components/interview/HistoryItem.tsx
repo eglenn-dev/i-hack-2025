@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { InterviewDocument } from "@/lib/db/collections";
 import Link from "next/link";
-import { Trash2 } from "lucide-react";
 
 type SerializedInterview = Omit<InterviewDocument, '_id' | 'createdAt' | 'completedAt'> & {
   _id: string;
@@ -17,47 +12,9 @@ type SerializedInterview = Omit<InterviewDocument, '_id' | 'createdAt' | 'comple
 
 interface HistoryItemProps {
   interview: SerializedInterview;
-  onDeleted?: () => void;
 }
 
-export function HistoryItem({ interview, onDeleted }: HistoryItemProps) {
-  const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this interview? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-
-    setIsDeleting(true);
-
-    try {
-      const response = await fetch(`/api/interview/${interview._id}/delete`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        toast.success("Interview deleted successfully");
-        onDeleted?.();
-        router.refresh();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Failed to delete interview");
-      }
-    } catch (error) {
-      console.error("Error deleting interview:", error);
-      toast.error("An error occurred while deleting the interview");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+export function HistoryItem({ interview }: HistoryItemProps) {
 
   return (
     <Link href={`/history/${interview._id}`}>
@@ -106,15 +63,6 @@ export function HistoryItem({ interview, onDeleted }: HistoryItemProps) {
                     ? "Ended Early"
                     : "In Progress"}
               </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="gap-2 mt-2 hover:bg-gray-200 dark:hover:bg-gray-300"
-              >
-                <Trash2 className="w-4 h-4 text-red-600 hover:text-red-700" />
-              </Button>
             </div>
           </div>
         </CardHeader>
