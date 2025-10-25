@@ -1,7 +1,13 @@
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { getUserInterviews, getUserStats } from "@/lib/db/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -32,7 +38,9 @@ export default async function DashboardPage() {
                             <CardDescription>Total Interviews</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold">{stats.totalInterviews}</div>
+                            <div className="text-3xl font-bold">
+                                {stats.totalInterviews}
+                            </div>
                         </CardContent>
                     </Card>
                     <Card>
@@ -41,7 +49,9 @@ export default async function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold">
-                                {stats.averageGrade > 0 ? Math.round(stats.averageGrade) : "-"}
+                                {stats.averageGrade > 0
+                                    ? Math.round(stats.averageGrade)
+                                    : "-"}
                             </div>
                         </CardContent>
                     </Card>
@@ -51,7 +61,9 @@ export default async function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold">
-                                {stats.highestGrade > 0 ? stats.highestGrade : "-"}
+                                {stats.highestGrade > 0
+                                    ? stats.highestGrade
+                                    : "-"}
                             </div>
                         </CardContent>
                     </Card>
@@ -61,16 +73,20 @@ export default async function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold">
-                                {stats.lowestGrade > 0 ? stats.lowestGrade : "-"}
+                                {stats.lowestGrade > 0
+                                    ? stats.lowestGrade
+                                    : "-"}
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Start New Interview */}
-                <Card className="bg-linear-to-r from-blue-500 to--600 border-none text-white">
+                <Card className="bg-blue-600 text-white">
                     <CardHeader>
-                        <CardTitle className="text-white">Start a New Interview</CardTitle>
+                        <CardTitle className="text-white">
+                            Start a New Interview
+                        </CardTitle>
                         <CardDescription className="text-blue-100">
                             Practice with AI-powered mock interviews
                         </CardDescription>
@@ -112,40 +128,51 @@ export default async function DashboardPage() {
                                                     {interview.jobTitle}
                                                 </h3>
                                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                    {interview.company} • {interview.location}
+                                                    {interview.company} •{" "}
+                                                    {interview.location}
                                                 </p>
                                                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                                    {new Date(interview.createdAt).toLocaleDateString()}
+                                                    {new Date(
+                                                        interview.createdAt
+                                                    ).toLocaleDateString()}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                {interview.status === "completed" && interview.grade && (
-                                                    <div
-                                                        className={`text-2xl font-bold ${
-                                                            interview.grade >= 80
-                                                                ? "text-green-600"
-                                                                : interview.grade >= 60
-                                                                ? "text-yellow-600"
-                                                                : "text-red-600"
-                                                        }`}
-                                                    >
-                                                        {interview.grade}
-                                                    </div>
-                                                )}
+                                                {interview.status ===
+                                                    "completed" &&
+                                                    interview.grade && (
+                                                        <div
+                                                            className={`text-2xl font-bold ${
+                                                                interview.grade >=
+                                                                80
+                                                                    ? "text-green-600"
+                                                                    : interview.grade >=
+                                                                        60
+                                                                      ? "text-yellow-600"
+                                                                      : "text-red-600"
+                                                            }`}
+                                                        >
+                                                            {interview.grade}
+                                                        </div>
+                                                    )}
                                                 <span
                                                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                        interview.status === "completed"
+                                                        interview.status ===
+                                                        "completed"
                                                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                                            : interview.status === "ended_early"
-                                                            ? "bg-red-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                                            : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                                            : interview.status ===
+                                                                "ended_early"
+                                                              ? "bg-red-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                                              : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                                                     }`}
                                                 >
-                                                    {interview.status === "completed"
+                                                    {interview.status ===
+                                                    "completed"
                                                         ? "Completed"
-                                                        : interview.status === "ended_early"
-                                                        ? "Ended Early"
-                                                        : "In Progress"}
+                                                        : interview.status ===
+                                                            "ended_early"
+                                                          ? "Ended Early"
+                                                          : "In Progress"}
                                                 </span>
                                             </div>
                                         </div>
