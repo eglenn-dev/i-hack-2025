@@ -25,7 +25,7 @@ export interface InterviewDocument {
     location: string;
     description?: string;
     maxQuestions: number;
-    status: "in_progress" | "completed";
+    status: "in_progress" | "completed" | "ended_early";
     grade?: number;
     feedback?: string;
     createdAt: Date;

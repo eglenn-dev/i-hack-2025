@@ -143,11 +143,15 @@ export default async function DashboardPage() {
                                                     className={`px-3 py-1 rounded-full text-xs font-medium ${
                                                         interview.status === "completed"
                                                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                            : interview.status === "ended_early"
+                                                            ? "bg-red-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                                             : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                                     }`}
                                                 >
                                                     {interview.status === "completed"
                                                         ? "Completed"
+                                                        : interview.status === "ended_early"
+                                                        ? "Ended Early"
                                                         : "In Progress"}
                                                 </span>
                                             </div>

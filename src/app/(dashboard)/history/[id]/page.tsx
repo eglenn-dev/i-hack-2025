@@ -115,7 +115,11 @@ export default async function InterviewDetailPage({
                                     Status
                                 </p>
                                 <p className="font-medium capitalize">
-                                    {interview.status}
+                                    {interview.status === "completed"
+                                                        ? "Completed"
+                                                        : interview.status === "ended_early"
+                                                        ? "Ended Early"
+                                                        : "In Progress"}
                                 </p>
                             </div>
                             {interview.grade && (

@@ -49,6 +49,10 @@ export async function POST(
                 .sort({ timestamp: 1 })
                 .toArray();
 
+            const userMessageCount = await db
+                .collection<MessageDocument>(COLLECTIONS.MESSAGES)
+                .countDocuments({ interviewId: id, role: "user" });
+
             // Generate grade and feedback using Gemini
             const { grade, feedback } = await gradeInterview(
                 messages.map((m) => ({ role: m.role, content: m.content })),
@@ -56,6 +60,19 @@ export async function POST(
                 interview.company
             );
 
+            if (interview.maxQuestions > userMessageCount) {
+                await db
+                    .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
+                    .updateOne(
+                        { _id: new ObjectId(id) },
+                        {
+                            $set: {
+                                status: "ended_early",
+                            },
+                        }
+                    );
+                return;
+            }
             // Update interview with completion data
             await db
                 .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
