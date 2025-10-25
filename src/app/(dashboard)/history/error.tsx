@@ -69,14 +69,6 @@ export default function Error({
                 </Link>
               </Button>
             </div>
-
-            {/* Help Text */}
-            <p className="text-center text-sm text-zinc-600 mt-8">
-              If this problem persists, please{" "}
-              <a href="mailto:support@aiinterview.com" className="text-blue-600 hover:text-blue-700 transition-colors">
-                contact support
-              </a>
-            </p>
           </div>
         </div>
 
