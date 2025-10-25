@@ -4,37 +4,41 @@ import { getDB, COLLECTIONS, InterviewDocument } from "@/lib/db/collections";
 import { ObjectId } from "mongodb";
 import { InterviewSessionWrapper } from "@/components/interview/InterviewSessionWrapper";
 
-export default async function InterviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    if (!session) redirect("/login");
+export default async function InterviewPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await getSession();
+  if (!session) redirect("/login");
 
-    const { id } = await params;
+  const { id } = await params;
 
-    const db = await getDB();
+  const db = await getDB();
 
-    // Fetch interview
-    const interview = await db
-        .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
-        .findOne({
-            _id: new ObjectId(id),
-            userId: session.email,
-        });
+  // Fetch interview
+  const interview = await db
+    .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
+    .findOne({
+      _id: new ObjectId(id),
+      userId: session.email,
+    });
 
-    if (!interview) notFound();
+  if (!interview) notFound();
 
-    // Redirect if already completed
-    if (interview.status === "completed" || interview.status === "ended_early") {
-        redirect(`/history/${id}`);
-    }
+  // Redirect if already completed
+  if (interview.status === "completed" || interview.status === "ended_early") {
+    redirect(`/history/${id}`);
+  }
 
-    // Ensure mode is set for backward compatibility
-    if (!interview.mode) {
-        interview.mode = "speech";
-    }
+  // Ensure mode is set for backward compatibility
+  if (!interview.mode) {
+    interview.mode = "speech";
+  }
 
-    return (
-        <div className="min-h-screen bg-linear-to-br dark:from-gray-900 dark:to-gray-800 p-8">
-            <InterviewSessionWrapper interview={{ ...interview, _id: id as never }} />
-        </div>
-    );
+  return (
+    <div className="min-h-screen bg-linear-to-br dark:from-gray-900 dark:to-gray-800 p-8">
+      <InterviewSessionWrapper interview={{ ...interview, _id: id as never }} />
+    </div>
+  );
 }

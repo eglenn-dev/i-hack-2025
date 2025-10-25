@@ -47,12 +47,6 @@ export function InterviewSession({
   const [audioLevel, setAudioLevel] = useState(0);
   const router = useRouter();
 
-  // Debug: Log the interview mode
-  console.log("Interview mode:", interview.mode);
-  console.log("Mode equals 'speech':", interview.mode === "speech");
-  console.log("Mode equals 'text':", interview.mode === "text");
-  console.log("Full interview object:", interview);
-
   const {
     isListening,
     isSupported,
@@ -66,6 +60,10 @@ export function InterviewSession({
     },
     onListeningChange: (listening) => {
       setBlobState(listening ? "listening" : "idle");
+      // Auto-submit when user stops listening in speech mode
+      if (!listening && currentAnswer.trim() && interview.mode === "speech") {
+        handleSubmitAnswer();
+      }
     },
   });
 
@@ -184,16 +182,105 @@ export function InterviewSession({
 
       {/* Animated Blob - Only show in speech mode */}
       {interview.mode === "speech" && (
-        <div className="flex justify-center py-4">
+        <div className="flex flex-col items-center gap-6 py-8">
           <AnimatedBlob state={blobState} audioLevel={audioLevel} />
+          {isSupported && (
+            <Button
+              onClick={isListening ? stopListening : startListening}
+              variant={isListening ? "destructive" : "default"}
+              size="lg"
+              className={`rounded-full w-20 h-20 p-0 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow ${
+                isListening ? "animate-pulse" : ""
+              }`}
+              title={isListening ? "Stop Listening" : "Start Speaking"}
+            >
+              {isListening ? (
+                <MicOff className="w-10 h-10" />
+              ) : (
+                <Mic className="w-10 h-10" />
+              )}
+            </Button>
+          )}
         </div>
       )}
 
       {/* Conversation */}
+      {interview.mode === "text" && (
         <Card>
           <CardContent className="pt-6">
-            {interview.mode === "text"&& (
-            <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
+            {interview.mode === "text" && (
+              <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-lg ${
+                      message.role === "assistant"
+                        ? "bg-blue-100 dark:bg-blue-900"
+                        : "bg-gray-100 dark:bg-gray-800"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="text-sm font-semibold">
+                        {message.role === "assistant" ? "Interviewer" : "You"}
+                      </p>
+                      {message.role === "assistant" && message.audioBase64 && (
+                        <AudioPlayer
+                          audioBase64={message.audioBase64}
+                          autoPlay={index === messages.length - 1}
+                          onPlay={() => {
+                            setBlobState("speaking");
+                            pauseListening();
+                          }}
+                          onPause={() => {
+                            setBlobState("idle");
+                            resumeListening();
+                          }}
+                          onEnded={() => {
+                            setBlobState("idle");
+                            setAudioLevel(0);
+                            resumeListening();
+                          }}
+                          onAudioLevel={setAudioLevel}
+                        />
+                      )}
+                    </div>
+                    <p className="text-gray-900 dark:text-gray-100">
+                      {message.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Answer Input - Only show in text mode */}
+            {interview.mode === "text" && (
+              <div className="space-y-4">
+                <Textarea
+                  placeholder="Type your answer here..."
+                  value={currentAnswer}
+                  onChange={(e) => setCurrentAnswer(e.target.value)}
+                  disabled={isLoading}
+                  className="min-h-[120px]"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.ctrlKey) {
+                      handleSubmitAnswer();
+                    }
+                  }}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    onClick={handleSubmitAnswer}
+                    disabled={isLoading || !currentAnswer.trim()}
+                  >
+                    {isLoading ? "Submitting..." : "Submit Answer"}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Speech Mode - Show messages only */}
+            {/* {interview.mode === "speech" && ( */}
+            <div className="space-y-4 max-h-[400px] overflow-y-auto">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -234,87 +321,10 @@ export function InterviewSession({
                 </div>
               ))}
             </div>
-            )}
-          
-
-          {/* Answer Input - Only show in text mode */}
-          {interview.mode === "text" && (
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Type your answer here..."
-                value={currentAnswer}
-                onChange={(e) => setCurrentAnswer(e.target.value)}
-                disabled={isLoading}
-                className="min-h-[120px]"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.ctrlKey) {
-                    handleSubmitAnswer();
-                  }
-                }}
-              />
-              <div className="flex justify-between items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-gray-500">
-                    Press Ctrl+Enter to submit
-                  </p>
-                </div>
-                <Button
-                  onClick={handleSubmitAnswer}
-                  disabled={isLoading || !currentAnswer.trim()}
-                >
-                  {isLoading ? "Submitting..." : "Submit Answer"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Speech Controls - Only show in speech mode */}
-          {interview.mode === "speech" && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-gray-500">
-                    Use the microphone to speak
-                  </p>
-                  {isSupported && (
-                    <span className="text-xs text-green-600 dark:text-green-400">
-                      ✓ Voice enabled
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  {isSupported && (
-                    <Button
-                      onClick={isListening ? stopListening : startListening}
-                      variant={isListening ? "destructive" : "outline"}
-                      size="sm"
-                      className="gap-2"
-                    >
-                      {isListening ? (
-                        <>
-                          <MicOff className="w-4 h-4" />
-                          Stop Listening
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="w-4 h-4" />
-                          Speak
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  <Button
-                    onClick={handleSubmitAnswer}
-                    disabled={isLoading || !currentAnswer.trim()}
-                  >
-                    {isLoading ? "Submitting..." : "Submit Answer"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {/* )} */}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
