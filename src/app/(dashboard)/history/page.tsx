@@ -20,6 +20,14 @@ export default async function HistoryPage() {
     .limit(50)
     .toArray();
 
+  // Serialize the data for Client Component
+  const serializedInterviews = interviews.map((interview) => ({
+    ...interview,
+    _id: interview._id?.toString(),
+    createdAt: interview.createdAt?.toISOString(),
+    completedAt: interview.completedAt?.toISOString(),
+  }));
+
   return (
     <div className="min-h-screen bg-linear-to-br dark:from-gray-900 dark:to-gray-800 p-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -34,7 +42,7 @@ export default async function HistoryPage() {
         </div>
 
         {/* Interviews List */}
-        {interviews.length === 0 ? (
+        {serializedInterviews.length === 0 ? (
           <Card>
             <CardContent className="py-12">
               <p className="text-gray-500 text-center text-lg">
@@ -49,10 +57,10 @@ export default async function HistoryPage() {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {interviews.map((interview) => (
+            {serializedInterviews.map((interview) => (
               <HistoryItem
-                key={interview._id?.toString()}
-                interview={interview as InterviewDocument & { _id: string }}
+                key={interview._id}
+                interview={interview}
               />
             ))}
           </div>

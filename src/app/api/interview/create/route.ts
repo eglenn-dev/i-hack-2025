@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
       maxQuestions
     );
 
-    // Generate TTS audio for the first question
-    const audioBase64 = await textToSpeech(firstQuestion);
+    // Generate TTS audio only for speech mode
+    const audioBase64 = mode === "speech" ? await textToSpeech(firstQuestion) : undefined;
 
     // Save the first question as a message
     const firstMessage: MessageDocument = {

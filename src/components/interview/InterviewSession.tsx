@@ -93,12 +93,12 @@ export function InterviewSession({
     },
   });
 
-  const playAudio = async(fileName: string) => {
+  const playAudio = async (fileName: string) => {
     setTimeout(() => {
       const audio = new Audio(fileName);
       audio.play();
     }, 2000);
-  }
+  };
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswerRef.current.trim()) {
@@ -109,7 +109,7 @@ export function InterviewSession({
 
     setIsLoading(true);
     setBlobState("thinking");
-    if(questionCount < interview.maxQuestions && interview.mode === "speech"){
+    if (questionCount < interview.maxQuestions && interview.mode === "speech") {
       playAudio("/audio/fillers/filler.mp4");
     }
 
@@ -264,23 +264,6 @@ export function InterviewSession({
                     <p className="text-sm font-semibold">
                       {message.role === "assistant" ? "Interviewer" : "You"}
                     </p>
-                    {message.role === "assistant" && message.audioBase64 && (
-                      <AudioPlayer
-                        audioBase64={message.audioBase64}
-                        autoPlay={false}
-                        onPlay={() => {
-                          setBlobState("speaking");
-                        }}
-                        onPause={() => {
-                          setBlobState("idle");
-                        }}
-                        onEnded={() => {
-                          setBlobState("idle");
-                          setAudioLevel(0);
-                        }}
-                        onAudioLevel={setAudioLevel}
-                      />
-                    )}
                   </div>
                   <p className="text-gray-900 dark:text-gray-100">
                     {message.content}
@@ -288,7 +271,9 @@ export function InterviewSession({
                 </div>
               ))}
               {isLoading && (
-                <p className="text-gray-500 italic animate-pulse">Thinking...</p>
+                <p className="text-gray-500 italic animate-pulse">
+                  Thinking...
+                </p>
               )}
               {/* Scroll target */}
               <div ref={messagesEndRef} />

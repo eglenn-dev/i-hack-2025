@@ -4,14 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InterviewDocument } from "@/lib/db/collections";
 import Link from "next/link";
 
+type SerializedInterview = Omit<InterviewDocument, '_id' | 'createdAt' | 'completedAt'> & {
+  _id: string;
+  createdAt: string;
+  completedAt?: string;
+};
+
 interface HistoryItemProps {
-  interview: InterviewDocument & { _id: string };
+  interview: SerializedInterview;
 }
 
 export function HistoryItem({ interview }: HistoryItemProps) {
 
   return (
-    <Link href={`/history/${interview._id?.toString()}`}>
+    <Link href={`/history/${interview._id}`}>
       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
         <CardHeader>
           <div className="flex items-start justify-between">

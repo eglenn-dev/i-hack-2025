@@ -193,8 +193,7 @@ export function InterviewSetup() {
             <div className="space-y-1">
               <h3 className="text-lg font-semibold">Build Confidence</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Practice as many times as you need in a safe, judgment-free
-                environment.
+                Practice as many times as you need.
               </p>
             </div>
           </div>

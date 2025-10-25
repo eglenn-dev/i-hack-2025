@@ -126,8 +126,8 @@ export async function POST(
             interview.maxQuestions
         );
 
-        // Generate TTS audio for the next question
-        const audioBase64 = await textToSpeech(nextQuestion);
+        // Generate TTS audio only for speech mode
+        const audioBase64 = interview.mode === "speech" ? await textToSpeech(nextQuestion) : undefined;
 
         // Save AI's response
         const aiMessage: MessageDocument = {
