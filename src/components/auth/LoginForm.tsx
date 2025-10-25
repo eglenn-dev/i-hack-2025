@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { ArrowLeft, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export function LoginForm() {
     const [email, setEmail] = useState("");
@@ -50,11 +52,21 @@ export function LoginForm() {
     return (
         <Card className="w-full max-w-md">
             <CardHeader>
-                <CardTitle>Welcome to AI Interview Practice</CardTitle>
-                <CardDescription>
-                    Enter your email to receive a login code
-                </CardDescription>
-            </CardHeader>
+            {/* Back to home link */}
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-black transition-colors mb-8 group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to home
+            </Link>
+            <div className="flex items-center justify-center gap-2">
+              <div className="p-2 rounded-lg bg-primary">
+                <Sparkles className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <CardTitle className="text-2xl text-zinc-900">Welcome to Olin</CardTitle>
+            </div>
+          </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
