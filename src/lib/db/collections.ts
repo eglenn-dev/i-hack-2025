@@ -4,6 +4,8 @@ import clientPromise from "./client";
 export interface UserDocument {
   _id?: ObjectId;
   email: string;
+  name?: string;
+  profilePhoto?: string; // Base64 encoded image
   createdAt: Date;
   updatedAt: Date;
 }

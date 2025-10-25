@@ -19,7 +19,7 @@ export async function decrypt(input: string): Promise<UserSession | null> {
         const { payload } = await jwtVerify(input, key, {
             algorithms: ["HS256"],
         });
-        return payload as UserSession;
+        return payload as unknown as UserSession;
     } catch (error) {
         if (error instanceof JWTExpired) {
             console.error("Error: Token has expired");
@@ -37,14 +37,14 @@ export async function getSession() {
     return await decrypt(session);
 }
 
-export async function createSession(email: string) {
+export async function createSession(email: string, name?: string) {
     const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     const sessionData: UserSession = {
         userId: email, // Using email as userId for simplicity
         email: email,
-        name: email.split("@")[0], // Extract name from email for MVP
-        profilePictureUrl: "", // Empty for MVP
+        name: name || email.split("@")[0], // Use provided name or extract from email
+        profilePictureUrl: "", // Not stored in session to avoid header size issues
         role: "user",
         expires: expires,
     };
