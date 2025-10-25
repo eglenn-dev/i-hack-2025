@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 export function CTASection() {
   return (
@@ -13,13 +14,12 @@ export function CTASection() {
           InterviewAI.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button size="lg" className="gap-2">
-            Get Started Free
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-          <Button size="lg" variant="outline">
-            View Pricing
-          </Button>
+            <Link href='/login'>
+                <Button size="lg" className="gap-2">
+                  Get Started Free
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+            </Link>
         </div>
         <p className="mt-6 text-sm text-muted-foreground">No credit card required. Start practicing in minutes.</p>
       </div>

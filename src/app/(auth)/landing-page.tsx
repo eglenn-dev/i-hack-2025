@@ -12,11 +12,6 @@ export default function LandingPage() {
         <BenefitsSection />
         <CTASection />
       </main>
-      <footer className="border-t border-border bg-muted/50 py-12">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 InterviewAI. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   )
 }
