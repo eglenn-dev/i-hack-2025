@@ -23,7 +23,7 @@ export default async function InterviewPage({ params }: { params: Promise<{ id: 
     if (!interview) notFound();
 
     // Redirect if already completed
-    if (interview.status === "completed") {
+    if (interview.status === "completed" || interview.status === "ended_early") {
         redirect(`/history/${id}`);
     }
 

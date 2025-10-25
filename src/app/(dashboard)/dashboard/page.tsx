@@ -16,20 +16,13 @@ export default async function DashboardPage() {
         <div className="min-h-screen bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 p-8">
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-                            Welcome back, {session.name}!
-                        </h1>
-                        <p className="text-gray-600 dark:text-gray-300 mt-2">
-                            Ready to practice your interview skills?
-                        </p>
-                    </div>
-                    <form action="/api/auth/logout" method="POST">
-                        <Button type="submit" variant="outline">
-                            Logout
-                        </Button>
-                    </form>
+                <div>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+                        Welcome back, {session.name}!
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-300 mt-2">
+                        Ready to practice your interview skills?
+                    </p>
                 </div>
 
                 {/* Stats Cards */}
@@ -143,11 +136,15 @@ export default async function DashboardPage() {
                                                     className={`px-3 py-1 rounded-full text-xs font-medium ${
                                                         interview.status === "completed"
                                                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                            : interview.status === "ended_early"
+                                                            ? "bg-red-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                                             : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                                     }`}
                                                 >
                                                     {interview.status === "completed"
                                                         ? "Completed"
+                                                        : interview.status === "ended_early"
+                                                        ? "Ended Early"
                                                         : "In Progress"}
                                                 </span>
                                             </div>
