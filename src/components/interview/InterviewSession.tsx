@@ -8,195 +8,227 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { InterviewDocument } from "@/lib/db/collections";
 import { AudioPlayer } from "./AudioPlayer";
+import { AnimatedBlob } from "./animated-blop";
 
 interface Message {
-    role: "assistant" | "user";
-    content: string;
-    timestamp: Date;
-    audioBase64?: string;
+  role: "assistant" | "user";
+  content: string;
+  timestamp: Date;
+  audioBase64?: string;
 }
 
 interface InterviewSessionProps {
-    interview: InterviewDocument & { _id: string };
-    firstQuestion: string;
-    firstQuestionAudio?: string;
+  interview: InterviewDocument & { _id: string };
+  firstQuestion: string;
+  firstQuestionAudio?: string;
 }
 
-export function InterviewSession({ interview, firstQuestion, firstQuestionAudio }: InterviewSessionProps) {
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            role: "assistant",
-            content: firstQuestion,
-            timestamp: new Date(),
-            audioBase64: firstQuestionAudio,
+export function InterviewSession({
+  interview,
+  firstQuestion,
+  firstQuestionAudio,
+}: InterviewSessionProps) {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "assistant",
+      content: firstQuestion,
+      timestamp: new Date(),
+      audioBase64: firstQuestionAudio,
+    },
+  ]);
+  const [currentAnswer, setCurrentAnswer] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [questionCount, setQuestionCount] = useState(1);
+  const [blobState, setBlobState] = useState<
+    "idle" | "listening" | "speaking" | "thinking"
+  >("idle");
+  const [audioLevel, setAudioLevel] = useState(0);
+  const router = useRouter();
+
+  const handleSubmitAnswer = async () => {
+    if (!currentAnswer.trim()) {
+      toast.error("Please provide an answer");
+      return;
+    }
+
+    setIsLoading(true);
+    setBlobState("thinking");
+
+    try {
+      // Add user message to the conversation
+      const userMessage: Message = {
+        role: "user",
+        content: currentAnswer,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setCurrentAnswer("");
+
+      // Send answer to API and get next question
+      const response = await fetch(`/api/interview/${interview._id}/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-    ]);
-    const [currentAnswer, setCurrentAnswer] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [questionCount, setQuestionCount] = useState(1);
-    const router = useRouter();
+        body: JSON.stringify({
+          content: currentAnswer,
+        }),
+      });
 
-    const handleSubmitAnswer = async () => {
-        if (!currentAnswer.trim()) {
-            toast.error("Please provide an answer");
-            return;
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.completed) {
+          // Interview is complete
+          setBlobState("idle");
+          toast.success("Interview completed!");
+          router.push(`/history/${interview._id}`);
+        } else {
+          // Add AI's next question
+          const aiMessage: Message = {
+            role: "assistant",
+            content: data.nextQuestion.text,
+            timestamp: new Date(),
+            audioBase64: data.nextQuestion.audioBase64,
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+          setQuestionCount((prev) => prev + 1);
         }
+      } else {
+        setBlobState("idle");
+        toast.error(data.error || "Failed to submit answer");
+      }
+    } catch {
+      setBlobState("idle");
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        setIsLoading(true);
+  const handleEndEarly = async () => {
+    if (confirm("Are you sure you want to end the interview early?")) {
+      try {
+        const response = await fetch(
+          `/api/interview/${interview._id}/complete`,
+          {
+            method: "POST",
+          }
+        );
 
-        try {
-            // Add user message to the conversation
-            const userMessage: Message = {
-                role: "user",
-                content: currentAnswer,
-                timestamp: new Date(),
-            };
+        if (response.ok) {
+          toast.success("Interview ended");
+          router.push(`/history/${interview._id}`);
+        } else {
+          toast.error("Failed to end interview");
+        }
+      } catch {
+        toast.error("An error occurred");
+      }
+    }
+  };
 
-            setMessages((prev) => [...prev, userMessage]);
-            setCurrentAnswer("");
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>{interview.jobTitle}</CardTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {interview.company} • {interview.location}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium">
+                Question {questionCount} of {interview.maxQuestions}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleEndEarly}
+                className="text-red-600 hover:text-red-700"
+              >
+                End Early
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
-            // Send answer to API and get next question
-            const response = await fetch(`/api/interview/${interview._id}/message`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    content: currentAnswer,
-                }),
-            });
+      {/* Animated Blob */}
+      <div className="flex justify-center py-4">
+        <AnimatedBlob state={blobState} audioLevel={audioLevel} />
+      </div>
 
-            const data = await response.json();
+      {/* Conversation */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg ${
+                  message.role === "assistant"
+                    ? "bg-blue-100 dark:bg-blue-900"
+                    : "bg-gray-100 dark:bg-gray-800"
+                }`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <p className="text-sm font-semibold">
+                    {message.role === "assistant" ? "Interviewer" : "You"}
+                  </p>
+                  {message.role === "assistant" && message.audioBase64 && (
+                    <AudioPlayer
+                      audioBase64={message.audioBase64}
+                      autoPlay={index === messages.length - 1}
+                      onPlay={() => setBlobState("speaking")}
+                      onPause={() => setBlobState("idle")}
+                      onEnded={() => {
+                        setBlobState("idle");
+                        setAudioLevel(0);
+                      }}
+                      onAudioLevel={setAudioLevel}
+                    />
+                  )}
+                </div>
+                <p className="text-gray-900 dark:text-gray-100">
+                  {message.content}
+                </p>
+              </div>
+            ))}
+          </div>
 
-            if (response.ok) {
-                if (data.completed) {
-                    // Interview is complete
-                    toast.success("Interview completed!");
-                    router.push(`/history/${interview._id}`);
-                } else {
-                    // Add AI's next question
-                    const aiMessage: Message = {
-                        role: "assistant",
-                        content: data.nextQuestion.text,
-                        timestamp: new Date(),
-                        audioBase64: data.nextQuestion.audioBase64,
-                    };
-                    setMessages((prev) => [...prev, aiMessage]);
-                    setQuestionCount((prev) => prev + 1);
+          {/* Answer Input */}
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Type your answer here..."
+              value={currentAnswer}
+              onChange={(e) => setCurrentAnswer(e.target.value)}
+              disabled={isLoading}
+              className="min-h-[120px]"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.ctrlKey) {
+                  handleSubmitAnswer();
                 }
-            } else {
-                toast.error(data.error || "Failed to submit answer");
-            }
-        } catch (error) {
-            toast.error("An error occurred. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleEndEarly = async () => {
-        if (confirm("Are you sure you want to end the interview early?")) {
-            try {
-                const response = await fetch(`/api/interview/${interview._id}/complete`, {
-                    method: "POST",
-                });
-
-                if (response.ok) {
-                    toast.success("Interview ended");
-                    router.push(`/history/${interview._id}`);
-                } else {
-                    toast.error("Failed to end interview");
-                }
-            } catch (error) {
-                toast.error("An error occurred");
-            }
-        }
-    };
-
-    return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            {/* Header */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle>{interview.jobTitle}</CardTitle>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {interview.company} • {interview.location}
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm font-medium">
-                                Question {questionCount} of {interview.maxQuestions}
-                            </p>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleEndEarly}
-                                className="text-red-600 hover:text-red-700"
-                            >
-                                End Early
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-            </Card>
-
-            {/* Conversation */}
-            <Card>
-                <CardContent className="pt-6">
-                    <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4">
-                        {messages.map((message, index) => (
-                            <div
-                                key={index}
-                                className={`p-4 rounded-lg ${
-                                    message.role === "assistant"
-                                        ? "bg-blue-100 dark:bg-blue-900"
-                                        : "bg-gray-100 dark:bg-gray-800"
-                                }`}
-                            >
-                                <div className="flex items-start justify-between mb-2">
-                                    <p className="text-sm font-semibold">
-                                        {message.role === "assistant" ? "Interviewer" : "You"}
-                                    </p>
-                                    {message.role === "assistant" && message.audioBase64 && (
-                                        <AudioPlayer
-                                            audioBase64={message.audioBase64}
-                                            autoPlay={index === messages.length - 1}
-                                        />
-                                    )}
-                                </div>
-                                <p className="text-gray-900 dark:text-gray-100">{message.content}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Answer Input */}
-                    <div className="space-y-4">
-                        <Textarea
-                            placeholder="Type your answer here..."
-                            value={currentAnswer}
-                            onChange={(e) => setCurrentAnswer(e.target.value)}
-                            disabled={isLoading}
-                            className="min-h-[120px]"
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && e.ctrlKey) {
-                                    handleSubmitAnswer();
-                                }
-                            }}
-                        />
-                        <div className="flex justify-between items-center">
-                            <p className="text-xs text-gray-500">Press Ctrl+Enter to submit</p>
-                            <Button
-                                onClick={handleSubmitAnswer}
-                                disabled={isLoading || !currentAnswer.trim()}
-                            >
-                                {isLoading ? "Submitting..." : "Submit Answer"}
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    );
+              }}
+            />
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-gray-500">
+                Press Ctrl+Enter to submit
+              </p>
+              <Button
+                onClick={handleSubmitAnswer}
+                disabled={isLoading || !currentAnswer.trim()}
+              >
+                {isLoading ? "Submitting..." : "Submit Answer"}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
