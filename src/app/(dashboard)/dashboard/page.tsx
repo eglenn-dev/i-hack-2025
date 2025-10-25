@@ -16,20 +16,13 @@ export default async function DashboardPage() {
         <div className="min-h-screen bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 p-8">
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-                            Welcome back, {session.name}!
-                        </h1>
-                        <p className="text-gray-600 dark:text-gray-300 mt-2">
-                            Ready to practice your interview skills?
-                        </p>
-                    </div>
-                    <form action="/api/auth/logout" method="POST">
-                        <Button type="submit" variant="outline">
-                            Logout
-                        </Button>
-                    </form>
+                <div>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+                        Welcome back, {session.name}!
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-300 mt-2">
+                        Ready to practice your interview skills?
+                    </p>
                 </div>
 
                 {/* Stats Cards */}
