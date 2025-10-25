@@ -53,8 +53,13 @@ export async function POST(request: NextRequest) {
             { upsert: true }
         );
 
-        // Create JWT session
-        await createSession(email);
+        // Fetch user data to get name
+        const user = await db
+            .collection<UserDocument>(COLLECTIONS.USERS)
+            .findOne({ email });
+
+        // Create JWT session with user data (photo not stored in session to avoid header size issues)
+        await createSession(email, user?.name);
 
         return NextResponse.json({ success: true });
     } catch (error) {
