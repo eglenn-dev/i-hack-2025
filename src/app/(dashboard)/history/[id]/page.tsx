@@ -55,12 +55,12 @@ export default async function InterviewDetailPage({
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                         Interview Details
                     </h1>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Link href="/history">
-                            <Button variant="outline">Back to History</Button>
+                            <Button variant="outline" className="w-full sm:w-auto">Back to History</Button>
                         </Link>
                         <Link href="/dashboard/setup">
-                            <Button>New Interview</Button>
+                            <Button className="w-full sm:w-auto">New Interview</Button>
                         </Link>
                     </div>
                 </div>
