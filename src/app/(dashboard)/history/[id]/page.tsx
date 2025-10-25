@@ -1,8 +1,19 @@
 import { getSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { getDB, COLLECTIONS, InterviewDocument, MessageDocument } from "@/lib/db/collections";
+import {
+    getDB,
+    COLLECTIONS,
+    InterviewDocument,
+    MessageDocument,
+} from "@/lib/db/collections";
 import { ObjectId } from "mongodb";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -54,7 +65,7 @@ export default async function InterviewDetailPage({
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+        <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -82,29 +93,43 @@ export default async function InterviewDetailPage({
                     <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Date
+                                </p>
                                 <p className="font-medium">
-                                    {new Date(interview.createdAt).toLocaleDateString()}
+                                    {new Date(
+                                        interview.createdAt
+                                    ).toLocaleDateString()}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Questions</p>
-                                <p className="font-medium">{interview.maxQuestions}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Questions
+                                </p>
+                                <p className="font-medium">
+                                    {interview.maxQuestions}
+                                </p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                                <p className="font-medium capitalize">{interview.status}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Status
+                                </p>
+                                <p className="font-medium capitalize">
+                                    {interview.status}
+                                </p>
                             </div>
                             {interview.grade && (
                                 <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Grade</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Grade
+                                    </p>
                                     <p
                                         className={`text-2xl font-bold ${
                                             interview.grade >= 80
                                                 ? "text-green-600"
                                                 : interview.grade >= 60
-                                                ? "text-yellow-600"
-                                                : "text-red-600"
+                                                  ? "text-yellow-600"
+                                                  : "text-red-600"
                                         }`}
                                     >
                                         {interview.grade}/100
@@ -133,7 +158,9 @@ export default async function InterviewDetailPage({
                 <Card>
                     <CardHeader>
                         <CardTitle>Interview Transcript</CardTitle>
-                        <CardDescription>Full conversation history</CardDescription>
+                        <CardDescription>
+                            Full conversation history
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -148,13 +175,19 @@ export default async function InterviewDetailPage({
                                 >
                                     <div className="flex items-start justify-between mb-2">
                                         <p className="text-sm font-semibold">
-                                            {message.role === "assistant" ? "Interviewer" : "You"}
+                                            {message.role === "assistant"
+                                                ? "Interviewer"
+                                                : "You"}
                                         </p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            {new Date(message.timestamp).toLocaleTimeString()}
+                                            {new Date(
+                                                message.timestamp
+                                            ).toLocaleTimeString()}
                                         </p>
                                     </div>
-                                    <p className="text-gray-900 dark:text-gray-100">{message.content}</p>
+                                    <p className="text-gray-900 dark:text-gray-100">
+                                        {message.content}
+                                    </p>
                                 </div>
                             ))}
                         </div>

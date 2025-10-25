@@ -8,6 +8,7 @@ import {
     MessageDocument,
 } from "@/lib/db/collections";
 import { gradeInterview } from "@/lib/gemini";
+import { after } from "next/server";
 
 export async function POST(
     request: NextRequest,
@@ -40,36 +41,38 @@ export async function POST(
             );
         }
 
-        // Get all messages for grading
-        const messages = await db
-            .collection<MessageDocument>(COLLECTIONS.MESSAGES)
-            .find({ interviewId: id })
-            .sort({ timestamp: 1 })
-            .toArray();
+        after(async () => {
+            // Get all messages for grading
+            const messages = await db
+                .collection<MessageDocument>(COLLECTIONS.MESSAGES)
+                .find({ interviewId: id })
+                .sort({ timestamp: 1 })
+                .toArray();
 
-        // Generate grade and feedback using Gemini
-        const { grade, feedback } = await gradeInterview(
-            messages.map((m) => ({ role: m.role, content: m.content })),
-            interview.jobTitle,
-            interview.company
-        );
-
-        // Update interview with completion data
-        await db
-            .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
-            .updateOne(
-                { _id: new ObjectId(id) },
-                {
-                    $set: {
-                        status: "completed",
-                        grade,
-                        feedback,
-                        completedAt: new Date(),
-                    },
-                }
+            // Generate grade and feedback using Gemini
+            const { grade, feedback } = await gradeInterview(
+                messages.map((m) => ({ role: m.role, content: m.content })),
+                interview.jobTitle,
+                interview.company
             );
 
-        return NextResponse.json({ grade, feedback });
+            // Update interview with completion data
+            await db
+                .collection<InterviewDocument>(COLLECTIONS.INTERVIEWS)
+                .updateOne(
+                    { _id: new ObjectId(id) },
+                    {
+                        $set: {
+                            status: "completed",
+                            grade,
+                            feedback,
+                            completedAt: new Date(),
+                        },
+                    }
+                );
+        });
+
+        return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Complete interview error:", error);
         return NextResponse.json(
