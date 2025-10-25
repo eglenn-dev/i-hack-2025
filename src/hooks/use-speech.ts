@@ -53,6 +53,19 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
   const accumulatedTranscriptRef = useRef("");
   const isSupported = isSpeechSupported();
 
+  // Store callbacks in refs to avoid recreating recognition
+  const onTranscriptRef = useRef(onTranscript);
+  const onListeningChangeRef = useRef(onListeningChange);
+
+  // Update callback refs when they change
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
+
+  useEffect(() => {
+    onListeningChangeRef.current = onListeningChange;
+  }, [onListeningChange]);
+
   // Initialize recognition only once
   useEffect(() => {
     if (!isSupported) return;
@@ -100,7 +113,7 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
           "Updated accumulated transcript:",
           accumulatedTranscriptRef.current
         );
-        onTranscript(accumulatedTranscriptRef.current.trim());
+        onTranscriptRef.current(accumulatedTranscriptRef.current.trim());
       }
     };
 
@@ -108,12 +121,17 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       if (event.error !== "aborted") {
         console.error("Speech recognition error:", event.error);
+        if (event.error === "not-allowed") {
+          console.error("Microphone permission denied");
+        }
       }
     };
 
     // Handle end
     recognition.onend = () => {
       console.log("Speech recognition ended");
+      setIsListening(false);
+      onListeningChangeRef.current?.(false);
     };
 
     return () => {
@@ -125,7 +143,7 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
         }
       }
     };
-  }, [isSupported, onTranscript]);
+  }, [isSupported]);
 
   const startListening = useCallback(() => {
     if (!recognitionRef.current || !isSupported) {
@@ -136,14 +154,16 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
     console.log("Starting speech recognition");
     accumulatedTranscriptRef.current = "";
     setIsListening(true);
-    onListeningChange?.(true);
+    onListeningChangeRef.current?.(true);
 
     try {
       recognitionRef.current.start();
     } catch (error) {
       console.error("Failed to start speech recognition:", error);
+      setIsListening(false);
+      onListeningChangeRef.current?.(false);
     }
-  }, [isSupported, onListeningChange]);
+  }, [isSupported]);
 
   const stopListening = useCallback(() => {
     if (!recognitionRef.current) return;
@@ -156,8 +176,8 @@ export function useSpeech({ onTranscript, onListeningChange }: UseSpeechProps) {
     }
 
     setIsListening(false);
-    onListeningChange?.(false);
-  }, [onListeningChange]);
+    onListeningChangeRef.current?.(false);
+  }, []);
 
   const pauseListening = useCallback(() => {
     if (!recognitionRef.current) return;
