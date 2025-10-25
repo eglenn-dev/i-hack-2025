@@ -119,8 +119,8 @@ interface WavConversionOptions {
 }
 
 function parseMimeType(mimeType: string): WavConversionOptions {
-    const [fileType, ...params] = mimeType.split(";").map((s: string) => s.trim());
-    const [, format] = fileType.split("/");
+    const [fileType, ...params] = mimeType.split(";").map((s) => s.trim());
+    const format = fileType.split("/")[1];
 
     const options: Partial<WavConversionOptions> = {
         numChannels: 1,
@@ -221,11 +221,10 @@ export async function textToSpeech(text: string): Promise<string> {
         if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
             const inlineData = chunk.candidates[0].content.parts[0].inlineData;
             let fileExtension = mime.getExtension(inlineData.mimeType || "");
-            let buffer = Buffer.from(inlineData.data || "", "base64");
+            let buffer: Buffer = Buffer.from(inlineData.data || "", "base64");
 
             if (!fileExtension) {
                 fileExtension = "wav";
-                // @ts-expect-error - Buffer type compatibility issue with different ArrayBuffer types
                 buffer = convertToWav(
                     inlineData.data || "",
                     inlineData.mimeType || ""

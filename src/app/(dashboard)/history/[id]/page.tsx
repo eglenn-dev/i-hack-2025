@@ -45,25 +45,6 @@ export default async function InterviewDetailPage({
         .sort({ timestamp: 1 })
         .toArray();
 
-    // If interview is not completed, trigger grading
-    if (interview.status === "in_progress" || !interview.grade) {
-        // Redirect to complete endpoint to grade it
-        try {
-            await fetch(
-                `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/interview/${id}/complete`,
-                {
-                    method: "POST",
-                    headers: {
-                        Cookie: `session=${session}`,
-                    },
-                }
-            );
-            redirect(`/history/${id}`);
-        } catch (error) {
-            console.error("Failed to grade interview:", error);
-        }
-    }
-
     return (
         <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
             <div className="max-w-4xl mx-auto space-y-6">
@@ -116,17 +97,17 @@ export default async function InterviewDetailPage({
                                 </p>
                                 <p className="font-medium capitalize">
                                     {interview.status === "completed"
-                                                        ? "Completed"
-                                                        : interview.status === "ended_early"
-                                                        ? "Ended Early"
-                                                        : "In Progress"}
+                                        ? "Completed"
+                                        : interview.status === "ended_early"
+                                          ? "Ended Early"
+                                          : "In Progress"}
                                 </p>
                             </div>
-                            {interview.grade && (
-                                <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        Grade
-                                    </p>
+                            <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Grade
+                                </p>
+                                {interview.grade ? (
                                     <p
                                         className={`text-2xl font-bold ${
                                             interview.grade >= 80
@@ -138,25 +119,34 @@ export default async function InterviewDetailPage({
                                     >
                                         {interview.grade}/100
                                     </p>
-                                </div>
-                            )}
+                                ) : (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                        Grading in progress...
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Feedback */}
-                {interview.feedback && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Performance Feedback</CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Performance Feedback</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {interview.feedback ? (
                             <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
                                 {interview.feedback}
                             </p>
-                        </CardContent>
-                    </Card>
-                )}
+                        ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                Feedback will be available once grading is
+                                complete. Please refresh the page in a moment.
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* Transcript */}
                 <Card>
