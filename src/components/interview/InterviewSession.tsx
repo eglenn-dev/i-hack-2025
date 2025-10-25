@@ -49,11 +49,18 @@ export function InterviewSession({
 
   // Use ref to avoid stale closure in onListeningChange
   const currentAnswerRef = useRef("");
+  // Ref for auto-scrolling to bottom of messages
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Keep ref in sync with state for both speech and text modes
   useEffect(() => {
     currentAnswerRef.current = currentAnswer;
   }, [currentAnswer]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const {
     isListening,
@@ -264,6 +271,11 @@ export function InterviewSession({
                   </p>
                 </div>
               ))}
+              {isLoading && (
+                <p className="text-gray-500 italic animate-pulse">Thinking...</p>
+              )}
+              {/* Scroll target */}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Answer Input - Only show in text mode */}
@@ -275,7 +287,8 @@ export function InterviewSession({
                 disabled={isLoading}
                 className="min-h-[120px]"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.ctrlKey) {
+                  if (e.shiftKey) return;
+                  if (e.key === "Enter") {
                     handleSubmitAnswer();
                   }
                 }}
