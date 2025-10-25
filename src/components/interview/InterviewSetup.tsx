@@ -25,7 +25,7 @@ const interviewSchema = z.object({
     company: z.string().min(1, "Company is required"),
     location: z.string().min(1, "Location is required"),
     description: z.string().optional(),
-    maxQuestions: z.number().min(3, "Minimum 3 questions").max(15, "Maximum 15 questions"),
+    maxQuestions: z.number().min(2, "Minimum 2 questions").max(5, "Maximum 5 questions"),
 });
 
 type InterviewFormData = z.infer<typeof interviewSchema>;
@@ -87,7 +87,7 @@ export function InterviewSetup() {
             <CardHeader>
                 <CardTitle>Setup Your Interview</CardTitle>
                 <CardDescription>
-                    Tell us about the position you're interviewing for
+                    Tell us about the position you are interviewing for
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -178,14 +178,14 @@ export function InterviewSetup() {
                                     <FormControl>
                                         <Input
                                             type="number"
-                                            min={3}
-                                            max={15}
+                                            min={2}
+                                            max={5}
                                             {...field}
                                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                                             disabled={isLoading}
                                         />
                                     </FormControl>
-                                    <FormDescription>Choose between 3-15 questions</FormDescription>
+                                    <FormDescription>Choose between 2-5 questions</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
