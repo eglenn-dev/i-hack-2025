@@ -185,7 +185,8 @@ export async function textToSpeech(text: string): Promise<string> {
         speechConfig: {
             voiceConfig: {
                 prebuiltVoiceConfig: {
-                    voiceName: "Zephyr",
+                    voiceName: "Umbriel",
+                    speakingRate: 1.5,
                 },
             },
         },
