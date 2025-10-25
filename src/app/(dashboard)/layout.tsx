@@ -22,6 +22,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
+import { ChromeOnlyWarning } from "@/components/dashboard/chrome-warning";
 
 interface Profile {
     email: string;
@@ -168,6 +169,7 @@ export default function DashboardLayout({
                     <SidebarTrigger />
                 </header>
                 {children}
+                <ChromeOnlyWarning />
             </SidebarInset>
         </SidebarProvider>
     );
