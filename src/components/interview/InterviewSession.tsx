@@ -7,24 +7,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { InterviewDocument } from "@/lib/db/collections";
+import { AudioPlayer } from "./AudioPlayer";
 
 interface Message {
     role: "assistant" | "user";
     content: string;
     timestamp: Date;
+    audioBase64?: string;
 }
 
 interface InterviewSessionProps {
     interview: InterviewDocument & { _id: string };
     firstQuestion: string;
+    firstQuestionAudio?: string;
 }
 
-export function InterviewSession({ interview, firstQuestion }: InterviewSessionProps) {
+export function InterviewSession({ interview, firstQuestion, firstQuestionAudio }: InterviewSessionProps) {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: "assistant",
             content: firstQuestion,
             timestamp: new Date(),
+            audioBase64: firstQuestionAudio,
         },
     ]);
     const [currentAnswer, setCurrentAnswer] = useState("");
@@ -75,6 +79,7 @@ export function InterviewSession({ interview, firstQuestion }: InterviewSessionP
                         role: "assistant",
                         content: data.nextQuestion.text,
                         timestamp: new Date(),
+                        audioBase64: data.nextQuestion.audioBase64,
                     };
                     setMessages((prev) => [...prev, aiMessage]);
                     setQuestionCount((prev) => prev + 1);
@@ -150,9 +155,17 @@ export function InterviewSession({ interview, firstQuestion }: InterviewSessionP
                                         : "bg-gray-100 dark:bg-gray-800"
                                 }`}
                             >
-                                <p className="text-sm font-semibold mb-1">
-                                    {message.role === "assistant" ? "Interviewer" : "You"}
-                                </p>
+                                <div className="flex items-start justify-between mb-2">
+                                    <p className="text-sm font-semibold">
+                                        {message.role === "assistant" ? "Interviewer" : "You"}
+                                    </p>
+                                    {message.role === "assistant" && message.audioBase64 && (
+                                        <AudioPlayer
+                                            audioBase64={message.audioBase64}
+                                            autoPlay={index === messages.length - 1}
+                                        />
+                                    )}
+                                </div>
                                 <p className="text-gray-900 dark:text-gray-100">{message.content}</p>
                             </div>
                         ))}

@@ -1,8 +1,8 @@
 import { getSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
-import { getDB, COLLECTIONS, InterviewDocument, MessageDocument } from "@/lib/db/collections";
+import { getDB, COLLECTIONS, InterviewDocument } from "@/lib/db/collections";
 import { ObjectId } from "mongodb";
-import { InterviewSession } from "@/components/interview/InterviewSession";
+import { InterviewSessionWrapper } from "@/components/interview/InterviewSessionWrapper";
 
 export default async function InterviewPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await getSession();
@@ -27,22 +27,9 @@ export default async function InterviewPage({ params }: { params: Promise<{ id: 
         redirect(`/history/${id}`);
     }
 
-    // Get the first message (question)
-    const firstMessage = await db
-        .collection<MessageDocument>(COLLECTIONS.MESSAGES)
-        .findOne({
-            interviewId: id,
-            role: "assistant",
-        });
-
-    const firstQuestion = firstMessage?.content || "Let's begin the interview!";
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
-            <InterviewSession
-                interview={{ ...interview, _id: id }}
-                firstQuestion={firstQuestion}
-            />
+            <InterviewSessionWrapper interview={{ ...interview, _id: id }} />
         </div>
     );
 }

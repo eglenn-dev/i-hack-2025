@@ -61,6 +61,16 @@ export function InterviewSetup() {
 
             if (response.ok) {
                 toast.success("Interview created! Starting now...");
+                // Store the first question audio in sessionStorage for the interview page
+                if (result.firstQuestion?.audioBase64) {
+                    sessionStorage.setItem(
+                        `interview_${result.interviewId}_audio`,
+                        JSON.stringify({
+                            text: result.firstQuestion.text,
+                            audio: result.firstQuestion.audioBase64,
+                        })
+                    );
+                }
                 router.push(`/interview/${result.interviewId}`);
             } else {
                 toast.error(result.error || "Failed to create interview");

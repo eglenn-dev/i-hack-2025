@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { getDB, COLLECTIONS, InterviewDocument, MessageDocument } from "@/lib/db/collections";
-import { generateInterviewQuestion } from "@/lib/gemini";
+import { generateInterviewQuestion, textToSpeech } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {
     try {
@@ -52,6 +52,9 @@ export async function POST(request: NextRequest) {
             maxQuestions
         );
 
+        // Generate TTS audio for the first question
+        const audioBase64 = await textToSpeech(firstQuestion);
+
         // Save the first question as a message
         const firstMessage: MessageDocument = {
             interviewId,
@@ -68,6 +71,7 @@ export async function POST(request: NextRequest) {
             interviewId,
             firstQuestion: {
                 text: firstQuestion,
+                audioBase64: audioBase64,
             },
         });
     } catch (error) {

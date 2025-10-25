@@ -7,6 +7,7 @@ A text-based AI interview practice application where users can conduct mock inte
 - **Email OTP Authentication**: Secure passwordless login with JWT sessions
 - **Interview Setup**: Customize interviews by job title, company, location, and description
 - **AI-Powered Questions**: Dynamic question generation using Google Gemini API
+- **Text-to-Speech**: AI interviewer speaks questions using Gemini's TTS with natural voice (Zephyr)
 - **Text-Based Interview**: Practice interviews with text responses
 - **Automatic Grading**: AI-powered performance evaluation with detailed feedback
 - **Interview History**: Review past interviews with full transcripts and grades

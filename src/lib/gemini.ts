@@ -1,6 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
+import mime from "mime";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAIClient = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY || "",
+});
 
 export async function generateInterviewQuestion(
     jobTitle: string,
@@ -107,14 +112,134 @@ FEEDBACK:
     };
 }
 
+interface WavConversionOptions {
+    numChannels: number;
+    sampleRate: number;
+    bitsPerSample: number;
+}
+
+function parseMimeType(mimeType: string): WavConversionOptions {
+    const [fileType, ...params] = mimeType.split(";").map((s) => s.trim());
+    const [_, format] = fileType.split("/");
+
+    const options: Partial<WavConversionOptions> = {
+        numChannels: 1,
+    };
+
+    if (format && format.startsWith("L")) {
+        const bits = parseInt(format.slice(1), 10);
+        if (!isNaN(bits)) {
+            options.bitsPerSample = bits;
+        }
+    }
+
+    for (const param of params) {
+        const [key, value] = param.split("=").map((s) => s.trim());
+        if (key === "rate") {
+            options.sampleRate = parseInt(value, 10);
+        }
+    }
+
+    return options as WavConversionOptions;
+}
+
+function createWavHeader(
+    dataLength: number,
+    options: WavConversionOptions
+): Buffer {
+    const { numChannels, sampleRate, bitsPerSample } = options;
+
+    const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+    const blockAlign = (numChannels * bitsPerSample) / 8;
+    const buffer = Buffer.alloc(44);
+
+    buffer.write("RIFF", 0); // ChunkID
+    buffer.writeUInt32LE(36 + dataLength, 4); // ChunkSize
+    buffer.write("WAVE", 8); // Format
+    buffer.write("fmt ", 12); // Subchunk1ID
+    buffer.writeUInt32LE(16, 16); // Subchunk1Size (PCM)
+    buffer.writeUInt16LE(1, 20); // AudioFormat (1 = PCM)
+    buffer.writeUInt16LE(numChannels, 22); // NumChannels
+    buffer.writeUInt32LE(sampleRate, 24); // SampleRate
+    buffer.writeUInt32LE(byteRate, 28); // ByteRate
+    buffer.writeUInt16LE(blockAlign, 32); // BlockAlign
+    buffer.writeUInt16LE(bitsPerSample, 34); // BitsPerSample
+    buffer.write("data", 36); // Subchunk2ID
+    buffer.writeUInt32LE(dataLength, 40); // Subchunk2Size
+
+    return buffer;
+}
+
+function convertToWav(rawData: string, mimeType: string): Buffer {
+    const options = parseMimeType(mimeType);
+    const wavHeader = createWavHeader(rawData.length, options);
+    const buffer = Buffer.from(rawData, "base64");
+
+    return Buffer.concat([wavHeader, buffer]);
+}
+
 export async function textToSpeech(text: string): Promise<string> {
-    // For MVP, we'll return a placeholder
-    // In production, you would use Gemini's text-to-speech API or another service
-    // This is a simplified implementation that returns base64 audio data
+    const config = {
+        temperature: 1,
+        responseModalities: ["audio"],
+        speechConfig: {
+            voiceConfig: {
+                prebuiltVoiceConfig: {
+                    voiceName: "Zephyr",
+                },
+            },
+        },
+    };
+    const model = "gemini-2.5-flash-preview-tts";
+    const contents = [
+        {
+            role: "user",
+            parts: [
+                {
+                    text: text,
+                },
+            ],
+        },
+    ];
 
-    // Note: Gemini API doesn't directly provide TTS in the same way as some other services
-    // You might want to use Google Cloud Text-to-Speech API separately
-    // For now, we'll return a placeholder that the frontend can handle
+    const response = await genAIClient.models.generateContentStream({
+        model,
+        config,
+        contents,
+    });
 
-    return ""; // Return empty string for now - frontend will handle audio differently
+    let audioBuffer: Buffer | null = null;
+
+    for await (const chunk of response) {
+        if (
+            !chunk.candidates ||
+            !chunk.candidates[0].content ||
+            !chunk.candidates[0].content.parts
+        ) {
+            continue;
+        }
+        if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+            const inlineData = chunk.candidates[0].content.parts[0].inlineData;
+            let fileExtension = mime.getExtension(inlineData.mimeType || "");
+            let buffer = Buffer.from(inlineData.data || "", "base64");
+
+            if (!fileExtension) {
+                fileExtension = "wav";
+                buffer = convertToWav(
+                    inlineData.data || "",
+                    inlineData.mimeType || ""
+                );
+            }
+
+            audioBuffer = buffer;
+            break; // We only need the first audio chunk
+        }
+    }
+
+    if (!audioBuffer) {
+        throw new Error("No audio data received from Gemini TTS");
+    }
+
+    // Return base64 encoded audio data
+    return audioBuffer.toString("base64");
 }

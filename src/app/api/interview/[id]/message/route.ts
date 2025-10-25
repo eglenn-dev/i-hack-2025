@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getSession } from "@/lib/auth/session";
 import { getDB, COLLECTIONS, MessageDocument, InterviewDocument } from "@/lib/db/collections";
-import { generateInterviewQuestion } from "@/lib/gemini";
+import { generateInterviewQuestion, textToSpeech } from "@/lib/gemini";
 
 export async function POST(
     request: NextRequest,
@@ -93,6 +93,9 @@ export async function POST(
             interview.maxQuestions
         );
 
+        // Generate TTS audio for the next question
+        const audioBase64 = await textToSpeech(nextQuestion);
+
         // Save AI's response
         const aiMessage: MessageDocument = {
             interviewId: id,
@@ -108,6 +111,7 @@ export async function POST(
         return NextResponse.json({
             nextQuestion: {
                 text: nextQuestion,
+                audioBase64: audioBase64,
             },
         });
     } catch (error) {
