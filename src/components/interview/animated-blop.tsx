@@ -20,16 +20,16 @@ export function AnimatedBlob({ state, audioLevel = 0 }: AnimatedBlobProps) {
         // React to audio level in real-time
         const audioScale = 0.8 + (audioLevel || 0) * 0.5;
         setScale(audioScale);
-        animationId = requestAnimationFrame(updateScale);
       } else if (state === "listening") {
         setScale(1.1);
       } else if (state === "thinking") {
         // Gentle pulse for thinking
         setScale(1 + Math.sin(Date.now() / 500) * 0.1);
-        animationId = requestAnimationFrame(updateScale);
       } else {
         setScale(1);
       }
+
+      animationId = requestAnimationFrame(updateScale);
     };
 
     updateScale();
@@ -64,19 +64,23 @@ export function AnimatedBlob({ state, audioLevel = 0 }: AnimatedBlobProps) {
         }}
       />
 
-      {/* Main blob */}
+      {/* Scale wrapper (React controlled) */}
       <div
-        className={`relative w-48 h-48 md:w-64 md:h-64 ${getBlobColor()} blob-animate transition-all duration-200 shadow-2xl`}
         style={{
           transform: `scale(${scale})`,
-          transition:
-            state === "speaking"
-              ? "transform 0.15s ease-out"
-              : "transform 0.3s ease-out",
         }}
       >
-        {/* Inner highlight */}
-        <div className="absolute inset-8 bg-linear-to-br from-white/20 to-transparent rounded-full blur-xl" />
+        {/* Main blob (CSS animation controlled) */}
+        <div
+          className={`relative w-48 h-48 md:w-64 md:h-64 ${getBlobColor()} blob-animate shadow-2xl`}
+          style={{
+            aspectRatio: "1",
+            borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+          }}
+        >
+          {/* Inner highlight */}
+          <div className="absolute inset-8 bg-linear-to-br from-white/20 to-transparent rounded-full blur-xl" />
+        </div>
       </div>
 
       {/* Particle effects for speaking state */}
