@@ -11,6 +11,7 @@ export async function proxy(request: NextRequest) {
         request.nextUrl.pathname.startsWith("/verify") ||
         request.nextUrl.pathname.startsWith("/audio") ||
         request.nextUrl.pathname.startsWith("/api/auth/send-otp") ||
+        request.nextUrl.pathname.startsWith("/api/health") ||
         request.nextUrl.pathname.startsWith("/api/auth/verify-otp");
 
     if (!session && !isPublicRoute) {
