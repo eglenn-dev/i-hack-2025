@@ -1,5 +1,5 @@
 <div align="center">
-    <h1><a href="https://olin.help" target="_blank">Olin</a></h1>
+    <h1>Olin</h1>
     <p>Welcome to Olin, an AI interview assistant. Made for the future of AI-driven interviews.</p>
     <p></p>
     <p>
