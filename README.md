@@ -12,6 +12,9 @@
     </p>
 </div>
 
+> [!NOTE]
+> This project was awarded first place in the BYU-Idaho I-Hack 2025 competition. [Learn more](https://ethanglenn.dev/blog/i-hack-25).
+
 ## Features
 
 - **AI-Powered Mock Interviews**: Conduct realistic practice interviews with AI-generated questions tailored to your job role
